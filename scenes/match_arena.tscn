@@ -5,8 +5,8 @@
 [ext_resource type="Script" path="res://scripts/presentation/trajectory_guide.gd" id="3"]
 
 [sub_resource type="Environment" id="Environment"]
-background_mode = 1
-background_color = Color(0.064, 0.102, 0.139, 1)
+background_mode = 3
+background_canvas_max_layer = -1
 ambient_light_source = 3
 ambient_light_color = Color(0.68, 0.8, 1, 1)
 ambient_light_energy = 0.65
@@ -39,6 +39,14 @@ albedo_color = Color(1, 0.62, 0.25, 0.3)
 material = SubResource("ImpactMaterial")
 radius = 0.8
 height = 1.6
+
+[sub_resource type="StandardMaterial3D" id="SupplyMaterial"]
+shading_mode = 0
+albedo_color = Color(1, 0.72, 0.19, 1)
+
+[sub_resource type="BoxMesh" id="SupplyMesh"]
+material = SubResource("SupplyMaterial")
+size = Vector3(0.48, 0.48, 0.32)
 
 [node name="MatchArena" type="Node3D"]
 process_mode = 4
@@ -77,6 +85,26 @@ visible = false
 mesh = SubResource("ImpactMesh")
 cast_shadow = 0
 
+[node name="SupplyPickup" type="Node3D" parent="."]
+visible = false
+
+[node name="Crate" type="MeshInstance3D" parent="SupplyPickup"]
+rotation = Vector3(0, 0.35, 0.785398)
+mesh = SubResource("SupplyMesh")
+cast_shadow = 0
+
+[node name="Label" type="Label3D" parent="SupplyPickup"]
+position = Vector3(0, 0.6, 0.2)
+billboard = 1
+no_depth_test = true
+modulate = Color(1, 0.84, 0.44, 1)
+text = "SUPPLY"
+font_size = 36
+outline_size = 9
+pixel_size = 0.0078
+
 [node name="LaunchSound" type="AudioStreamPlayer" parent="."]
 
 [node name="ImpactSound" type="AudioStreamPlayer" parent="."]
+
+[node name="SupplySound" type="AudioStreamPlayer" parent="."]

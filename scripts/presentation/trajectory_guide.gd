@@ -1,8 +1,8 @@
 class_name TrajectoryGuide
 extends Node3D
 
-const DOT_COUNTS := [6, 9, 12, 15, 18]
-const MAX_DOTS := 18
+const DOT_COUNTS := [12, 15, 18, 20]
+const MAX_DOTS := 20
 const FIRST_DOT := 0.86
 const DOT_SPACING := 0.42
 

@@ -212,8 +212,8 @@ func _update_match_hud(
 		label += " (CPU)"
 	var phase := "%02ds" % ceili(state.remaining) if state.phase == MatchSimulation.Phase.ACTIVE else "Resolving"
 	%TurnTitle.text = "TURN %d  ·  %s  ·  %s" % [state.turn_number, label, phase]
-	%BlueHealth.text = "BLUE  %d HP" % state.team_health(0)
-	%OrangeHealth.text = "ORANGE  %d HP" % state.team_health(1)
+	%BlueHealth.text = "BLUE  %d HP  ·  %d SUP" % [state.team_health(0), state.supplies[0]]
+	%OrangeHealth.text = "ORANGE  %d HP  ·  %d SUP" % [state.team_health(1), state.supplies[1]]
 	var wind := "Calm" if is_zero_approx(state.wind) else ("%s %.1f" % [
 		"→" if state.wind > 0.0 else "←", absf(state.wind)
 	])
@@ -221,4 +221,7 @@ func _update_match_hud(
 	%WeaponStatus.text = "%s  ·  Wind %s  ·  Aim %+.0f°" % [weapon_name, wind, angle]
 	var computer_status := arena.computer_status()
 	%MatchStatus.text = computer_status if not computer_status.is_empty() else state.message
+	var pickup := arena.supply_notice()
+	if not pickup.is_empty():
+		%MatchStatus.text = pickup
 	%MatchPower.value = power

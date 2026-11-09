@@ -12,11 +12,44 @@ Updated 9 November 2026. Start with a Windows single-player artillery game built
 | **M2 · Movement, turns, and weapons** | `feature/turn-simulation`, `feature/unit-movement`, `feature/weapon-behavior`, `research/reference-measurements` | Two test teams can walk, jump, aim, fire a rocket or timed grenade, take damage, and hand off turns after the action settles. Reference captures inform the tuning. |
 | **M3 · Playable solo match** | `feature/solo-opponent`, `feature/match-flow`, `feature/match-ui` | One person can start, finish, and restart a match against the computer on one arena. The HUD shows the active team, turn timer, health, wind, selected weapon, and shot power. The result screen offers a rematch and a return to the main menu. |
 | **M3a · Mouse aim and CPU balance** | `feature/mouse-aim-and-cpu-balance` | Aim with the cursor and release a looping charge. Blue sees a short fading guide. The CPU can hit, miss, or pass under the same combat rules. Tune the default through solo playtests. |
-| **M4 · Pickups and economy** | `feature/pickups`, `feature/match-shop` | First test whether moving for a pickup creates a meaningful tradeoff. Then decide wallet ownership, prices, purchase timing, and reset rules. Use the existing guide tiers for the first character upgrade. |
-| **M5 · Characters and presentation** | `art/character-direction`, `feature/arena-presentation`, `feature/combat-feedback` | Apply the chosen original theme through models, animation, materials, sound, and effects. Check that silhouettes, aim, and crater edges remain readable with the new art. |
-| **M6 · Content and polish** | Scope per feature after the solo match | Add the maps, abilities, and onboarding that playtests justify. Evaluate control remapping, UI scaling, and feedback settings with real users. Test Windows export and performance on the intended hardware. |
+| **M4 · Drag aiming and pickups** | `feature/drag-aim-pickups-and-arena`, `feature/match-economy` | Blue starts with a 12-dot guide. Pull back to set aim and power. A unit or projectile can collect a random supply between separated opposing units. Playtest pickup value and placement before setting prices. |
+| **M5 · Characters and presentation** | `art/character-direction`, `feature/character-customization`, `feature/arena-presentation` | Replace the capsules with two customizable human leads. Check that silhouettes, shots, and crater edges remain readable against the landscape. |
+| **M6 · Campaign and hub slice** | `feature/campaign-flow`, `feature/campaign-hub`, `feature/supporter-roster`, `feature/campaign-upgrades` | Play the first two levels end to end, rescue one supporter, return to a walkable room, and spend supplies through distinct team and character upgrade screens. |
+| **M7 · Ten-level story** | `feature/campaign-levels`, `feature/cpu-difficulty-profiles` | The player completes an original ten-level story. Arenas grow, AI becomes more capable, and rescued friends and pets join the turn queue. |
+| **M8 · Polish and release** | Scope per feature after the campaign slice | Playtest onboarding, UI scaling, accessibility, progression balance, and Windows export and performance. |
 
-M3 is the single-player MVP. Rope traversal, vehicles, terrain generation, campaign progression, and multiplayer are separate design topics. Revisit each when there is a playtested reason to add it. Browser export is a separate platform decision because it affects the choice of renderer. [Godot renderer guide](https://docs.godotengine.org/en/4.7/tutorials/rendering/renderers.html)
+M3 is the single-match MVP. M6 is the first playable story slice. Rope traversal, vehicles, terrain generation, and multiplayer are separate design topics. Browser export is a separate platform decision because it affects the choice of renderer. [Godot renderer guide](https://docs.godotengine.org/en/4.7/tutorials/rendering/renderers.html)
+
+## M4 · Solo playtest
+
+- Press anywhere in the play area, pull opposite the intended shot, and release. Drag distance sets power, so a player can hold a power level or shorten the pull. Aim and power update together, with a dead zone for accidental clicks. Blue's fading guide has up to 12 dots, with prototype upgrade limits of 15, 18, and 20.
+- Test a supply that appears at one randomly selected supported spot between living opponents with enough room. Moving through it or passing a rocket or grenade through it credits the team. Watch whether firing for supplies crowds out walking, and tune placement before the campaign depends on supplies.
+- Use a real misty lake photograph to establish the arena's mood. Tune its contrast around aim dots, pickups, units, and the HUD. [Backdrop credit](assets/backgrounds/CREDITS.md)
+
+## Campaign direction
+
+**Working title** *Signal Fires*. Two volunteer rescuers, a man and a woman in love, return to their mountain valley after a flood. An armed salvage crew has seized the relay that would let isolated towns call for help. The couple crosses flooded routes, rescues neighbors and animals, and works its way back to the relay. Short conversations back at their shelter show how they make decisions together and what the valley means to them.
+
+- Before level one, let the player customize each lead's appearance independently, starting with hair, clothing, and colors. Treat appearance as cosmetic and keep it separate from combat stats.
+- Give each rescued friend or pet a stable place in the player turn queue after the two leads, in rescue order. Complete a rescue objective to unlock that supporter. Skip defeated units and keep the queue visible once the roster grows. Prototype with one supporter before expanding the party.
+- After each cleared level, return to a walkable shelter using the same 3D side view. Approach the **map table** to see chapter progress and choose the next mission. Approach the **supply bench** for the team upgrade screen and the **roster board** for individual upgrades. Give each recruited character a subtab. Use proximity prompts and an interact key, and keep menus accessible with keyboard or mouse.
+- Team upgrades affect the whole roster. Individual upgrades apply to one lead or supporter. Try an individual trajectory upgrade first, then use playtesting to price it and choose a first team upgrade. Proposed reset rule for the first slice: keep earned upgrades between levels during one campaign, clear temporary combat effects each battle, and reset skills and earned upgrades when starting a new campaign or standalone match. Retain cosmetic preferences separately. Restore the pre-level state on retry.
+- Use short, increasingly distinct stages as in the original *Angry Birds*. Use a room with physical interaction points to pace missions, inspired by the House of Hades. [Rovio's original-level examples](https://www.rovio.com/articles/bringing-back-2012-dev-diary-3-progress-update/) · [Supergiant's House of Hades notes](https://www.supergiantgames.com/blog/6/)
+
+| Level | Story beat and tactical step |
+| --- | --- |
+| 1 · First Signal | The couple reunites at the flooded lakeshore. Learn movement and the pull-back shot against a slow scout on the smallest arena. |
+| 2 · Ferry Landing | Clear a route to the ferry and rescue a dog. Introduce the supply tradeoff and the first supporter turn. |
+| 3 · Through the Pines | Use cover to reach an old friend cut off in a forest outpost. The CPU starts moving to improve firing positions. |
+| 4 · Switchback | Cross a larger vertical arena and recover a battery for the relay. Enemies use cover and arcing shots more often. |
+| 5 · Broken Bridge | Reopen a route for evacuees. The CPU compares more firing positions and uses craters to threaten crossings. |
+| 6 · Waterline | Retrieve medicine near the rising lake. Both teams have longer shots and more contested supplies. |
+| 7 · Radio Ridge | Escort a radio operator out of a winding ridgeline. The CPU plans around cover and protects vulnerable allies. |
+| 8 · Blackout | Secure the relay power station. A larger arena introduces split routes and harder target choices. |
+| 9 · Last Ascent | Climb to the relay with the full rescue crew. Stronger opponents apply pressure across several lanes. |
+| 10 · Light the Valley | Retake the relay and guide the valley's evacuation. Use the largest arena and the toughest CPU profile. End with the couple and rescued crew sending the signal together. |
+
+Build and playtest levels one and two before committing to later layouts. Give the CPU more time to compare positions, smarter target priorities, and smaller aim errors as difficulty rises. Keep its physics and turn rules consistent across the campaign.
 
 ## M1 · Destructible terrain lab
 

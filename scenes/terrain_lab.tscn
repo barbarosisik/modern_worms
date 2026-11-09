@@ -5,8 +5,8 @@
 [ext_resource type="Script" path="res://scripts/presentation/trajectory_guide.gd" id="3"]
 
 [sub_resource type="Environment" id="Environment"]
-background_mode = 1
-background_color = Color(0.064, 0.102, 0.139, 1)
+background_mode = 3
+background_canvas_max_layer = -1
 ambient_light_source = 3
 ambient_light_color = Color(0.68, 0.8, 1, 1)
 ambient_light_energy = 0.65
