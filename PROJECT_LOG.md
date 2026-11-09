@@ -22,11 +22,18 @@
 4. Open a pull request from `development_branch` to `main` after integration testing. Merge it after the repository owner approves the tested changes. Subsequent work goes through task branches and pull requests.
 5. Use descriptive commit subjects and the repository owner's configured GitHub identity. Keep assistant attribution and co-author trailers out of commits and project files.
 
+## 2026-11-09 | M1 terrain lab and menus
+
+- Built the playable lab on `feature/destructible-terrain` from the planning baseline `742b591`. The project opens to a main menu with Start terrain lab, Settings, and Quit. Pause freezes the active simulation and offers Resume, Settings, and Main menu.
+- Added the lab HUD, manual aim and charge, the repeatable shot, reset, and a collision outline. Fullscreen and master volume apply in the running game and save locally. Firing and impact play audible cues.
+- Verified with Godot 4.7.2 Standard on Windows. The Forward+ run rendered the home, settings, pause, and arena views and switched between fullscreen and windowed. The first rocket struck the ledge at approximately `(12.00, 6.67)` and dropped the target. The same shot reached the rear wall at `(24.00, 4.97)`.
+- The headless checks covered repeatability, thin-wall and corner sweeps, neighbor chunks, projectile escape, reset during flight, manual firing, the collision overlay, pause and resume, and loading settings in a new game instance. These are fixture values for M1. Reference calibration and the complete solo match are separate milestones.
+
 ## Next session
 
-- [ ] Start `feature/destructible-terrain` from the current `development_branch`. Verify the Godot editor and renderer on Windows, then build and run the ledge fixture in the plan.
-- [ ] Record the repeat-shot, chunk boundary, and reset checks. Test M1 on `development_branch` after integration. Record the exact commit and any fixes still needed.
 - [ ] On `research/reference-measurements`, confirm access to the Steam PC reference and record its build ID, scheme, map, and capture setup. Collect measurements for turn handoff, movement, shot arcs, and impacts before tuning M2. Save derived measurements, repeatability, and uncertainty with the project.
+- [ ] For M2, start `feature/turn-simulation` from the integrated baseline. Introduce team and unit rotation, a turn clock, and a handoff after shots and secondary motion settle. Keep the two-shot terrain lab as a regression fixture.
+- [ ] For the solo match, add an in-match HUD with turn, health, wind, and weapon information. Connect the existing menu, pause, and settings flow to the match and result screens.
 - [ ] Decide whether the turn clock alone supplies the desired movement constraint. Revisit the economy and original character direction once the match can be played end to end.
 
 For each new log entry, record the date, branch or commit, completed work, verification performed, open questions, and the next concrete action.
