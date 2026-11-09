@@ -37,7 +37,6 @@ func reset_lab() -> void:
 	_angle = 0.0
 	_facing = 1.0
 	_guide_tier = 0
-	_aim_controls.cursor = Vector2.INF
 	cancel_charge()
 	_flash_time = 0.0
 	launch_sound.stop()
@@ -54,13 +53,16 @@ func cancel_charge() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion:
-		_aim_controls.cursor = event.position
+	if event is InputEventMouseMotion and _aim_controls.is_dragging():
+		_aim_controls.update_drag(camera, event.position)
 	elif _aim_controls.owns_release(event):
 		if event is InputEventMouseButton:
-			_aim_controls.cursor = event.position
-		_update_cursor_aim()
-		_fire(_manual_velocity())
+			_aim_controls.update_drag(camera, event.position)
+			_apply_drag_direction()
+		if not _aim_controls.is_dragging() or _aim_controls.power() > 0.0:
+			_fire(_manual_velocity())
+		else:
+			cancel_charge()
 		get_viewport().set_input_as_handled()
 
 
@@ -75,22 +77,20 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("cycle_guide_tier"):
 		_guide_tier = (_guide_tier + 1) % TrajectoryGuide.DOT_COUNTS.size()
 	elif event.is_action_pressed("pointer_fire") and event is InputEventMouseButton and simulation.rocket == null:
-		_aim_controls.cursor = event.position
-		_aim_controls.begin(&"pointer_fire")
+		_aim_controls.begin_drag(event.position)
 	elif event.is_action_pressed("fire") and simulation.rocket == null:
-		_aim_controls.begin(&"fire")
+		_aim_controls.begin_keyboard()
 
 
 func _physics_process(delta: float) -> void:
 	var rocket_active := simulation.rocket != null
 	if not rocket_active:
 		var aim := Input.get_axis("aim_down", "aim_up")
-		if not is_zero_approx(aim):
-			_aim_controls.cursor = Vector2.INF
+		if not _aim_controls.is_dragging() and not is_zero_approx(aim):
 			_angle = clampf(_angle + aim * AimControls.AIM_SPEED * delta,
 				AimControls.MIN_ANGLE, AimControls.MAX_ANGLE)
 		else:
-			_update_cursor_aim()
+			_apply_drag_direction()
 	_aim_controls.tick()
 	simulation.step(delta)
 	if rocket_active and simulation.rocket == null:
@@ -103,8 +103,8 @@ func _physics_process(delta: float) -> void:
 	_refresh_view()
 
 
-func _update_cursor_aim() -> void:
-	var direction := _aim_controls.cursor_direction(camera, TerrainSimulation.MUZZLE)
+func _apply_drag_direction() -> void:
+	var direction := _aim_controls.drag_direction
 	if direction == Vector2.ZERO:
 		return
 	if not is_zero_approx(direction.x):

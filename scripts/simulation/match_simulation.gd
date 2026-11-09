@@ -21,11 +21,16 @@ var wind := 0.0
 var message := ""
 var last_blast := Vector2.INF
 var dirty_chunks: Array[Vector2i] = []
+var supply_position := Vector2.INF
+var supplies := PackedInt32Array([0, 0])
+var collected_supply_team := -1
+var _supply_rng: RandomNumberGenerator
 var _quiet_time := 0.0
 
 
 func _init(build_arena: bool = true) -> void:
 	if build_arena:
+		_supply_rng = RandomNumberGenerator.new()
 		reset()
 
 
@@ -48,9 +53,13 @@ func reset() -> void:
 	remaining = TURN_SECONDS
 	winner = -1
 	wind = 0.0
-	message = "Move into position and take a shot."
+	message = "Walk or shoot through a supply to collect it."
 	last_blast = Vector2.INF
 	dirty_chunks.clear()
+	supplies.fill(0)
+	supply_position = Vector2.INF
+	collected_supply_team = -1
+	_spawn_supply()
 	_quiet_time = 0.0
 
 
@@ -101,6 +110,7 @@ func build_shot(angle: float, power: float, weapon: ArtilleryShot.Weapon, facing
 func step(delta: float, move_axis: float = 0.0, jump: bool = false) -> void:
 	dirty_chunks.clear()
 	last_blast = Vector2.INF
+	collected_supply_team = -1
 	if phase == Phase.FINISHED:
 		return
 	if phase == Phase.ACTIVE:
@@ -113,12 +123,15 @@ func step(delta: float, move_axis: float = 0.0, jump: bool = false) -> void:
 		if not unit.alive():
 			continue
 		var controlled := phase == Phase.ACTIVE and unit == active_unit()
+		var previous_center := unit.center()
 		unit.step(terrain, delta, move_axis if controlled else 0.0, controlled and jump, controlled)
 		if unit.feet.y <= WATER_LEVEL:
 			unit.health = 0
 			message = "%s %d fell into the water." % [TEAM_NAMES[unit.team], unit.number]
 			if controlled:
 				_resolve(message)
+		elif controlled:
+			_collect_supply(unit.team, previous_center, unit.center(), MatchUnit.HALF_WIDTH)
 	if phase == Phase.RESOLVING:
 		_check_settlement(delta)
 
@@ -140,7 +153,9 @@ func living_centers() -> PackedVector2Array:
 
 
 func _update_shot(delta: float) -> void:
+	var start := shot.position
 	var result := shot.step(delta, terrain, living_centers())
+	_collect_supply(active_unit().team, start, shot.position)
 	match result:
 		ArtilleryShot.Result.IMPACT:
 			_explode(shot.position, shot.weapon)
@@ -148,6 +163,18 @@ func _update_shot(delta: float) -> void:
 		ArtilleryShot.Result.ESCAPED:
 			shot = null
 			message = "The shot left the arena."
+
+
+func _spawn_supply() -> void:
+	if _supply_rng != null and supply_position == Vector2.INF:
+		supply_position = SupplyPickup.choose_site(terrain, units, WATER_LEVEL, _supply_rng)
+
+
+func _collect_supply(team: int, start: Vector2, end: Vector2, extra_radius: float = 0.0) -> void:
+	if supply_position != Vector2.INF and SupplyPickup.touched(supply_position, start, end, extra_radius):
+		supplies[team] += 1
+		collected_supply_team = team
+		supply_position = Vector2.INF
 
 
 static func crater_radius(weapon: ArtilleryShot.Weapon) -> float:
@@ -179,6 +206,8 @@ func _explode(point: Vector2, weapon: ArtilleryShot.Weapon) -> void:
 		unit.velocity += Vector2(direction.x * 9.5, maxf(0.3, direction.y) * 7.0 + 2.3) * strength
 		unit.grounded = false
 	dirty_chunks = terrain.cut_disc(point, crater_radius(weapon))
+	if supply_position != Vector2.INF and supply_position.distance_to(point) <= crater_radius(weapon) + 1.0:
+		supply_position = SupplyPickup.supported_position(terrain, supply_position, WATER_LEVEL)
 	last_blast = point
 	message = "%d damage dealt." % damage_dealt if damage_dealt > 0 else "Terrain hit."
 
@@ -213,3 +242,5 @@ func _check_settlement(delta: float) -> void:
 	wind = WIND_PATTERN[(turn_number - 1) % WIND_PATTERN.size()]
 	remaining = TURN_SECONDS
 	phase = Phase.ACTIVE
+	if turn_number % 2 == 1:
+		_spawn_supply()

@@ -16,13 +16,13 @@ func _run() -> void:
 	for failure in _failures:
 		push_error(failure)
 	if _failures.is_empty():
-		print("PASS: looping charge, mouse projection and release, GUI and turn ownership, and fading guide tiers")
+		print("PASS: drag aiming and power, keyboard charge, GUI and turn ownership, and fading guide tiers")
 	quit(0 if _failures.is_empty() else 1)
 
 
 func _check_charge() -> void:
 	var aim := AimControls.new()
-	aim.begin(&"pointer_fire")
+	aim.begin_keyboard()
 	for tick in range(1, 402):
 		aim.tick()
 		var expected := 100 - absi(100 - tick % 200)
@@ -63,33 +63,35 @@ func _check_controls() -> void:
 	var guide := arena.trajectory_guide
 	var power := app.get_node("%MatchPower") as ProgressBar
 	_expect(not paused and game.shot == null, "The click starting a match does not fire a shot.")
-	_expect(_visible_dots(guide) == 6, "Blue starts with six dots in an unobstructed direction.")
+	var point := Vector2(620.0, 280.0)
+	var strong_pull := point + Vector2(205.0, 115.0)
+	var medium_pull := point + Vector2(130.0, 78.0)
+	_mouse_button(point, true)
+	_mouse_button(point + Vector2.ONE, false)
+	_expect(game.shot == null, "A stationary click inside the dead zone does not fire.")
+
+	_mouse_button(point, true)
+	_mouse_motion(strong_pull)
+	await physics_frame
+	await physics_frame
+	_expect(power.value == 1.0, "Pulling far enough reaches full power.")
+	_expect(_visible_dots(guide) == 12, "Blue starts with up to twelve unobstructed dots.")
 	var near_dot := guide.get_child(0) as MeshInstance3D
-	var far_dot := guide.get_child(5) as MeshInstance3D
+	var far_dot := guide.get_child(11) as MeshInstance3D
 	_expect(near_dot.material_override.albedo_color.a > far_dot.material_override.albedo_color.a,
 		"The last dot fades relative to the first.")
-
-	var center := game.active_unit().center()
-	var point := arena.camera.unproject_position(Vector3(center.x + 5.0, center.y + 3.0, 0.0))
-	var motion := InputEventMouseMotion.new()
-	motion.position = point
-	motion.global_position = point
-	var previous_aim := near_dot.position
-	_send(motion)
+	_mouse_motion(medium_pull)
 	await physics_frame
 	await physics_frame
-	_expect(near_dot.position.y > previous_aim.y, "Moving the cursor alone updates the aim.")
-	_mouse_button(point, true)
-	for tick in range(120):
-		await physics_frame
-	_expect(power.value > 0.75 and power.value < 0.84, "Holding LMB past the peak decreases power.")
-	_expect(game.shot == null, "Holding the button does not fire.")
 	var released_power := power.value
-	var aim_left := arena.camera.unproject_position(Vector3(center.x - 4.0, center.y + 2.0, 0.0))
-	_mouse_button(aim_left, false)
+	_expect(released_power > 0.75 and released_power < 0.9, "Moving closer to the anchor lowers power.")
+	for tick in range(25):
+		await physics_frame
+	_expect(power.value == released_power and game.shot == null, "Holding still preserves the selected power.")
+	_mouse_button(medium_pull, false)
 	_expect(game.shot != null and game.shot.velocity.x < 0.0 and game.shot.velocity.y > 0.0
 		and is_equal_approx(game.shot.velocity.length(), lerpf(6.0, 18.0, released_power)),
-		"Release uses the current cursor direction and the displayed power.")
+		"Release fires opposite the pull at the displayed power.")
 	for tick in range(460):
 		if game.turn_number == 2:
 			break
@@ -98,9 +100,10 @@ func _check_controls() -> void:
 	_expect(game.turn_number == 2 and _visible_dots(guide) == 0, "Local Orange can aim without guide dots.")
 
 	_mouse_button(point, true)
+	_mouse_motion(strong_pull)
 	await physics_frame
 	_tap(KEY_ESCAPE)
-	_mouse_button(point, false)
+	_mouse_button(strong_pull, false)
 	_expect(paused and game.shot == null, "Pausing mid-charge cancels the shot.")
 	await process_frame
 	_click(app.get_node("%ResumeButton"))
@@ -108,15 +111,17 @@ func _check_controls() -> void:
 	await physics_frame
 	_expect(not paused and game.shot == null and power.value == 0.0, "A resume click leaves power at zero.")
 	_mouse_button(point, true)
+	_mouse_motion(strong_pull)
 	await physics_frame
 	root.focus_exited.emit()
-	_mouse_button(point, false)
+	_mouse_button(strong_pull, false)
 	_expect(game.shot == null, "Losing focus cancels the held shot.")
 	_mouse_button(point, true)
+	_mouse_motion(strong_pull)
 	game.remaining = 0.001
 	for tick in range(40):
 		await physics_frame
-	_mouse_button(point, false)
+	_mouse_button(strong_pull, false)
 	_expect(game.turn_number == 3 and game.shot == null, "A held shot expires with its original turn.")
 	_click(app.get_node("%MatchPauseButton"))
 	_expect(paused and game.shot == null, "Clicking the HUD Pause button never fires.")
@@ -127,7 +132,7 @@ func _check_controls() -> void:
 		_tap(KEY_G)
 	await physics_frame
 	await physics_frame
-	_expect(_visible_dots(lab.trajectory_guide) == 18, "The terrain lab previews the 18-dot tier.")
+	_expect(_visible_dots(lab.trajectory_guide) == 20, "The terrain lab previews the 20-dot tier.")
 	app.free()
 
 
@@ -151,6 +156,14 @@ func _mouse_button(position: Vector2, pressed: bool) -> void:
 	event.position = position
 	event.global_position = position
 	event.pressed = pressed
+	_send(event)
+
+
+func _mouse_motion(position: Vector2) -> void:
+	var event := InputEventMouseMotion.new()
+	event.position = position
+	event.global_position = position
+	event.button_mask = MOUSE_BUTTON_MASK_LEFT
 	_send(event)
 
 

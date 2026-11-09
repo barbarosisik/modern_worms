@@ -19,8 +19,10 @@ const COMPUTER_WAIT_TICKS := 12
 @onready var trajectory_guide: TrajectoryGuide = $TrajectoryGuide
 @onready var projectile: MeshInstance3D = $Projectile
 @onready var flash: MeshInstance3D = $Impact
+@onready var supply_view: Node3D = $SupplyPickup
 @onready var launch_sound: AudioStreamPlayer = $LaunchSound
 @onready var impact_sound: AudioStreamPlayer = $ImpactSound
+@onready var supply_sound: AudioStreamPlayer = $SupplySound
 @onready var _shot_material := projectile.mesh.surface_get_material(0) as StandardMaterial3D
 
 var simulation := MatchSimulation.new()
@@ -33,6 +35,8 @@ var _weapon := ArtilleryShot.Weapon.ROCKET
 var _aim_controls := AimControls.new()
 var _jump_requested := false
 var _flash_time := 0.0
+var _supply_notice_time := 0.0
+var _supply_notice_team := -1
 var _computer := ComputerOpponent.new()
 var _computer_phase := ComputerPhase.WAITING
 var _computer_ticks := 0
@@ -43,6 +47,7 @@ func _ready() -> void:
 	get_window().focus_exited.connect(_cancel_human_input)
 	launch_sound.stream = ArtilleryAudio.tone(0.17, 330.0, 150.0)
 	impact_sound.stream = ArtilleryAudio.tone(0.28, 108.0, 32.0)
+	supply_sound.stream = ArtilleryAudio.tone(0.20, 440.0, 880.0)
 	for unit in simulation.units:
 		_create_unit_view(unit)
 
@@ -51,12 +56,13 @@ func reset_match(against_computer: bool = false) -> void:
 	computer_enabled = against_computer
 	simulation.reset()
 	terrain_mesh.rebuild_all(simulation.terrain)
-	_aim_controls.cursor = Vector2.INF
 	_reset_aim()
 	_flash_time = 0.0
 	flash.hide()
 	launch_sound.stop()
 	impact_sound.stop()
+	supply_sound.stop()
+	_supply_notice_time = 0.0
 	_refresh_view()
 
 
@@ -74,13 +80,17 @@ func _cancel_human_input() -> void:
 func _input(event: InputEvent) -> void:
 	if simulation.phase != MatchSimulation.Phase.ACTIVE or is_computer_turn():
 		return
-	if event is InputEventMouseMotion:
-		_aim_controls.cursor = event.position
+	if event is InputEventMouseMotion and _aim_controls.is_dragging():
+		_aim_controls.update_drag(camera, event.position)
 	elif _aim_controls.owns_release(event):
 		if event is InputEventMouseButton:
-			_aim_controls.cursor = event.position
-		_update_cursor_aim()
-		_fire_current_shot()
+			_aim_controls.update_drag(camera, event.position)
+			_power = _aim_controls.power()
+			_apply_drag_direction()
+		if not _aim_controls.is_dragging() or _power > 0.0:
+			_fire_current_shot()
+		else:
+			cancel_input()
 		get_viewport().set_input_as_handled()
 
 
@@ -90,7 +100,6 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("unit_jump"):
 		_jump_requested = true
 	elif event.is_action_pressed("flip_facing"):
-		_aim_controls.cursor = Vector2.INF
 		simulation.active_unit().facing *= -1.0
 	elif event.is_action_pressed("select_rocket"):
 		_weapon = ArtilleryShot.Weapon.ROCKET
@@ -100,10 +109,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		simulation.pass_turn()
 		cancel_input()
 	elif event.is_action_pressed("pointer_fire") and event is InputEventMouseButton:
-		_aim_controls.cursor = event.position
-		_aim_controls.begin(&"pointer_fire")
+		_aim_controls.begin_drag(event.position)
 	elif event.is_action_pressed("fire"):
-		_aim_controls.begin(&"fire")
+		_aim_controls.begin_keyboard()
 
 
 func is_computer_turn() -> bool:
@@ -122,6 +130,12 @@ func computer_status() -> String:
 			return "Computer is choosing a shot."
 
 
+func supply_notice() -> String:
+	if _supply_notice_time <= 0.0:
+		return ""
+	return "%s collected a supply." % MatchSimulation.TEAM_NAMES[_supply_notice_team]
+
+
 func _physics_process(delta: float) -> void:
 	var previous_turn := simulation.turn_number
 	var previous_phase := simulation.phase
@@ -131,21 +145,25 @@ func _physics_process(delta: float) -> void:
 			movement = _computer_movement(delta)
 		else:
 			var aim := Input.get_axis("aim_down", "aim_up")
-			if not is_zero_approx(aim):
-				_aim_controls.cursor = Vector2.INF
+			if not _aim_controls.is_dragging() and not is_zero_approx(aim):
 				_angle = clampf(_angle + aim * AimControls.AIM_SPEED * delta,
 					AimControls.MIN_ANGLE, AimControls.MAX_ANGLE)
 			_aim_controls.tick()
 			_power = _aim_controls.power()
 			movement = Input.get_axis("unit_left", "unit_right")
 	simulation.step(delta, movement, _jump_requested)
+	_supply_notice_time = maxf(0.0, _supply_notice_time - delta)
+	if simulation.collected_supply_team >= 0:
+		_supply_notice_team = simulation.collected_supply_team
+		_supply_notice_time = 1.6
+		supply_sound.play()
 	_jump_requested = false
 	if simulation.turn_number != previous_turn:
 		_reset_aim()
 	elif simulation.phase != MatchSimulation.Phase.ACTIVE:
 		cancel_input()
 	if simulation.phase == MatchSimulation.Phase.ACTIVE and not is_computer_turn():
-		_update_cursor_aim()
+		_apply_drag_direction()
 	if simulation.last_blast != Vector2.INF:
 		_present_blast()
 	_flash_time = maxf(0.0, _flash_time - delta)
@@ -172,9 +190,9 @@ func _fire_current_shot() -> void:
 	cancel_input()
 
 
-func _update_cursor_aim() -> void:
+func _apply_drag_direction() -> void:
 	var active := simulation.active_unit()
-	var direction := _aim_controls.cursor_direction(camera, active.center())
+	var direction := _aim_controls.drag_direction
 	if direction == Vector2.ZERO:
 		return
 	if not is_zero_approx(direction.x):
@@ -274,6 +292,9 @@ func _refresh_view() -> void:
 		trajectory_guide.preview(preview, simulation.terrain, simulation.living_centers(), active.guide_tier)
 	else:
 		trajectory_guide.hide()
+	supply_view.visible = simulation.supply_position != Vector2.INF
+	if supply_view.visible:
+		supply_view.position = _in_world(simulation.supply_position)
 	projectile.visible = simulation.shot != null
 	if simulation.shot != null:
 		projectile.position = _in_world(simulation.shot.position)

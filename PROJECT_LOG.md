@@ -53,11 +53,20 @@
 - On the stock arena after Blue passed, the previous CPU's opening removed 100 Blue HP. The revised CPU averaged 41.3 Blue HP damage across 24 seeded runs. Four shots did no Blue damage and one removed 100 HP. The boxed-in CPU passed on all 24 seeds, and the close one-on-one fixture with a one-HP target ended in an Orange win on all 24. These are fixture results. Solo playtesting will determine the final charge pace and difficulty.
 - Verified in Godot 4.7.2 on Windows with the terrain lab, match, solo, and aim headless suites. A seeded stock-arena run let Blue pass, observed the CPU walk and win, and started a clean rematch. In a Forward+ run at 1280 × 720, verified the six-dot match guide, the 18-dot lab tier, the power percentage, and GUI clicks during a match.
 
+## 2026-11-09 | M4 drag aiming, supplies, and arena backdrop
+
+- Built `feature/drag-aim-pickups-and-arena` from `6a61fbb`. Mouse aim and power now come from pulling back from the click point. Pull farther for more power, shorten the pull to reduce power, and release to fire. A short click cancels. Space keeps the keyboard charge behavior.
+- Raised the base Blue guide from six to twelve dots after playtesting feedback. The lab previews caps of 12, 15, 18, and 20. Terrain can shorten the visible path.
+- Added one supply at a random supported site between sufficiently separated living opponents. If the slot is empty, the match tries again at the start of the next full round. The active unit, a rocket, or a grenade can collect it by crossing it. Projectiles keep going after collection and respect cover. Both teams use the same rules and show their supply count in the HUD. Supplies reset on rematch.
+- Added a Lake Chelan photo behind the 3D playfield. Courtesy of North Cascades National Park Service Complex. [Photo and rights](assets/backgrounds/CREDITS.md)
+- Verified five headless suites in Godot 4.7.2 on Windows. The Forward+ check confirmed pull-back input, HUD power, both guide lengths, and the photographic backdrop at 1280 × 720.
+- Added the draft *Signal Fires* campaign to [the plan](plan.md). It follows two customizable human lovers through ten increasingly difficult rescue levels. Rescued friends and pets join the queue after the leads. A walkable shelter connects the map table, team upgrades, and per-character upgrade tabs.
+
 ## Next session
 
 - [ ] On `research/reference-measurements`, confirm access to the Steam PC reference and record its build ID, scheme, map, and capture setup. Collect measurements for turn handoff, movement, shot arcs, and impacts before tuning M2. Save derived measurements, repeatability, and uncertainty with the project.
-- [ ] Play a full solo match with the six-dot guide. Check whether the charge pace is readable, the CPU gives Blue time to recover from a miss, and late turns still progress after terrain is destroyed.
-- [ ] For M4, start `feature/pickups` from the integrated solo baseline. Place one visible pickup off the safe firing route and show collection in the HUD. Use that experiment to design the wallet, shop, and first earned guide upgrade.
-- [ ] Decide whether the turn clock alone supplies the desired movement constraint. Revisit the economy and original character direction once the match can be played end to end.
+- [ ] Play a full solo match with pull-back aim and the 12-dot guide. Check the distance to full power, supply accessibility by foot and shot, and CPU behavior after the terrain breaks up.
+- [ ] Use that playtest to choose supply value and a first earned trajectory upgrade. Prototype one team upgrade and one character upgrade on separate screens before pricing more skills.
+- [ ] Prototype two customizable lead characters, a two-level rescue with one recruit, and a side-view shelter. Verify that upgrades carry between levels within one campaign and reset when a new game starts. Expand the difficulty curve and maps to ten levels after the slice works.
 
 For each new log entry, record the date, branch or commit, completed work, verification performed, open questions, and the next concrete action.
