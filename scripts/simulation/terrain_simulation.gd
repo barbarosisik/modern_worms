@@ -9,11 +9,11 @@ const TARGET_GRAVITY := 17.0
 const TARGET_HALF_WIDTH := 0.2
 
 var terrain: TerrainGrid
-var rocket: LabRocket
+var rocket: ArtilleryShot
 var target_feet: Vector2
 var last_impact := Vector2.INF
 var dirty_chunks: Array[Vector2i] = []
-var last_result := LabRocket.Result.FLYING
+var last_result := ArtilleryShot.Result.FLYING
 var _target_velocity := 0.0
 
 
@@ -31,15 +31,15 @@ func reset() -> void:
 	target_feet = TARGET_START
 	last_impact = Vector2.INF
 	dirty_chunks.clear()
-	last_result = LabRocket.Result.FLYING
+	last_result = ArtilleryShot.Result.FLYING
 	_target_velocity = 0.0
 
 
 func fire(launch_velocity: Vector2) -> bool:
 	if rocket != null:
 		return false
-	rocket = LabRocket.new(MUZZLE, launch_velocity)
-	last_result = LabRocket.Result.FLYING
+	rocket = ArtilleryShot.new(MUZZLE, launch_velocity)
+	last_result = ArtilleryShot.Result.FLYING
 	return true
 
 
@@ -47,10 +47,10 @@ func step(delta: float) -> void:
 	dirty_chunks.clear()
 	if rocket != null:
 		last_result = rocket.step(delta, terrain)
-		if last_result == LabRocket.Result.IMPACT:
+		if last_result == ArtilleryShot.Result.IMPACT:
 			last_impact = rocket.position
 			dirty_chunks = terrain.cut_disc(last_impact, BLAST_RADIUS)
-		if last_result != LabRocket.Result.FLYING:
+		if last_result != ArtilleryShot.Result.FLYING:
 			rocket = null
 	_drop_target(delta)
 
