@@ -29,8 +29,8 @@ var _status := "Ready. Press F for the first fixture shot."
 
 func _ready() -> void:
 	camera.look_at(Vector3(15.5, 6.8, 0.0))
-	launch_sound.stream = _tone(0.17, 330.0, 150.0)
-	impact_sound.stream = _tone(0.28, 108.0, 32.0)
+	launch_sound.stream = ArtilleryAudio.tone(0.17, 330.0, 150.0)
+	impact_sound.stream = ArtilleryAudio.tone(0.28, 108.0, 32.0)
 	reset_lab()
 
 
@@ -94,7 +94,7 @@ func _fire(velocity: Vector2) -> void:
 
 
 func _finish_shot() -> void:
-	if simulation.last_result == LabRocket.Result.ESCAPED:
+	if simulation.last_result == ArtilleryShot.Result.ESCAPED:
 		_status = "Rocket left the arena."
 		return
 	for chunk in simulation.dirty_chunks:
@@ -153,21 +153,3 @@ func _outline_edge(outline: ImmediateMesh, a: Vector2, b: Vector2) -> void:
 	var depth := TerrainMesh.HALF_DEPTH + 0.04
 	outline.surface_add_vertex(Vector3(a.x, a.y, depth))
 	outline.surface_add_vertex(Vector3(b.x, b.y, depth))
-
-
-func _tone(duration: float, start_pitch: float, end_pitch: float) -> AudioStreamWAV:
-	const RATE := 22050
-	var sample_count := roundi(duration * RATE)
-	var pcm := PackedByteArray()
-	pcm.resize(sample_count * 2)
-	var phase := 0.0
-	for i in range(sample_count):
-		var progress := float(i) / sample_count
-		var amplitude := minf(1.0, progress * 65.0) * pow(1.0 - progress, 2.0) * 0.26
-		phase += TAU * lerpf(start_pitch, end_pitch, progress) / RATE
-		pcm.encode_s16(i * 2, roundi(sin(phase) * amplitude * 32767.0))
-	var sound := AudioStreamWAV.new()
-	sound.format = AudioStreamWAV.FORMAT_16_BITS
-	sound.mix_rate = RATE
-	sound.data = pcm
-	return sound

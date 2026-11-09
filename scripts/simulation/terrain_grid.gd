@@ -1,6 +1,14 @@
 class_name TerrainGrid
 extends RefCounted
 
+class Contact:
+	var point: Vector2
+	var normal: Vector2
+
+	func _init(hit_point: Vector2, hit_normal: Vector2) -> void:
+		point = hit_point
+		normal = hit_normal
+
 const SIZE := Vector2i(256, 128)
 const CELL_SIZE := 0.125
 const CHUNK_SIZE := 32
@@ -48,10 +56,15 @@ func cut_disc(center: Vector2, radius: float) -> Array[Vector2i]:
 
 
 func first_contact(start: Vector2, end: Vector2) -> Vector2:
+	var contact := sweep(start, end)
+	return contact.point if contact != null else Vector2.INF
+
+
+func sweep(start: Vector2, end: Vector2) -> Contact:
 	var cell := _world_cell(start)
-	if is_solid(cell):
-		return start
 	var delta := end - start
+	if is_solid(cell):
+		return Contact.new(start, -delta.normalized())
 	var step_x := int(signf(delta.x))
 	var step_y := int(signf(delta.y))
 	var stride_x := INF
@@ -67,22 +80,28 @@ func first_contact(start: Vector2, end: Vector2) -> Vector2:
 
 	while minf(next_x, next_y) <= 1.0:
 		var time := minf(next_x, next_y)
+		var normal: Vector2
 		if is_equal_approx(next_x, next_y):
 			# Check both side cells at a corner so a fast shot cannot slip between them.
-			if is_solid(cell + Vector2i(step_x, 0)) or is_solid(cell + Vector2i(0, step_y)):
-				return start + delta * time
+			if is_solid(cell + Vector2i(step_x, 0)):
+				return Contact.new(start + delta * time, Vector2(-step_x, 0))
+			if is_solid(cell + Vector2i(0, step_y)):
+				return Contact.new(start + delta * time, Vector2(0, -step_y))
 			cell += Vector2i(step_x, step_y)
 			next_x += stride_x
 			next_y += stride_y
+			normal = Vector2(-step_x, -step_y).normalized()
 		elif next_x < next_y:
 			cell.x += step_x
 			next_x += stride_x
+			normal = Vector2(-step_x, 0)
 		else:
 			cell.y += step_y
 			next_y += stride_y
+			normal = Vector2(0, -step_y)
 		if is_solid(cell):
-			return start + delta * time
-	return Vector2.INF
+			return Contact.new(start + delta * time, normal)
+	return null
 
 
 func _world_cell(position: Vector2) -> Vector2i:

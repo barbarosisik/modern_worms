@@ -52,7 +52,7 @@ func _check_fixture() -> void:
 
 	simulation.fire(Vector2(0.0, 40.0))
 	_finish_rocket(simulation)
-	_expect(simulation.last_result == LabRocket.Result.ESCAPED, "An escaped rocket releases input.")
+	_expect(simulation.last_result == ArtilleryShot.Result.ESCAPED, "An escaped rocket releases input.")
 	simulation.fire(TerrainSimulation.PRESET_VELOCITY)
 	simulation.step(STEP)
 	simulation.reset()

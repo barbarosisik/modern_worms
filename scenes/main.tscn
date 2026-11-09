@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/ui/main.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/terrain_lab.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/match_arena.tscn" id="3"]
 
 [sub_resource type="StyleBoxFlat" id="Panel"]
 content_margin_left = 30.0
@@ -115,6 +116,8 @@ script = ExtResource("1")
 
 [node name="TerrainLab" parent="." instance=ExtResource("2")]
 
+[node name="MatchArena" parent="." instance=ExtResource("3")]
+
 [node name="Interface" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -155,7 +158,7 @@ layout_mode = 2
 
 [node name="Kicker" type="Label" parent="Interface/Home/Card/Content"]
 layout_mode = 2
-text = "M1  /  PROTOTYPE"
+text = "M2  /  LOCAL PLAY"
 theme_override_colors/font_color = Color(0.47, 0.88, 0.9, 1)
 theme_override_font_sizes/font_size = 14
 
@@ -166,16 +169,22 @@ theme_override_font_sizes/font_size = 40
 
 [node name="Description" type="Label" parent="Interface/Home/Card/Content"]
 layout_mode = 2
-text = "Fire a rocket to remove a ledge, then repeat the shot through the opening."
+text = "Take turns controlling both teams on one keyboard, or practice shots in the terrain lab."
 theme_override_colors/font_color = Color(0.67, 0.77, 0.83, 1)
 custom_minimum_size = Vector2(430, 0)
 autowrap_mode = 2
+
+[node name="MatchButton" type="Button" parent="Interface/Home/Card/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "Play local match"
 
 [node name="StartButton" type="Button" parent="Interface/Home/Card/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-text = "Start terrain lab"
+text = "Terrain lab"
 
 [node name="HomeSettings" type="Button" parent="Interface/Home/Card/Content"]
 unique_name_in_owner = true
@@ -208,7 +217,7 @@ layout_mode = 2
 
 [node name="Kicker" type="Label" parent="Interface/PauseScreen/Card/Content"]
 layout_mode = 2
-text = "TERRAIN LAB"
+text = "PLAY SESSION"
 theme_override_colors/font_color = Color(0.47, 0.88, 0.9, 1)
 theme_override_font_sizes/font_size = 14
 
@@ -414,4 +423,160 @@ show_percentage = false
 [node name="Controls" type="Label" parent="Interface/Hud/Readout/Content"]
 layout_mode = 2
 text = "↑ ↓  Aim     ·     Hold Space  Charge & fire     ·     F  Repeatable shot     ·     R  Reset     ·     F1  Collision outline"
+
+[node name="MatchHud" type="Control" parent="Interface"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TurnTitle" type="Label" parent="Interface/MatchHud"]
+unique_name_in_owner = true
+layout_mode = 1
+anchor_right = 1.0
+offset_left = 214.0
+offset_top = 18.0
+offset_right = -214.0
+offset_bottom = 52.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.73, 0.93, 0.96, 1)
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+text = "TURN 1  ·  Blue 1  ·  30s"
+
+[node name="BlueHealth" type="Label" parent="Interface/MatchHud"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 30.0
+offset_top = 21.0
+theme_override_colors/font_color = Color(0.49, 0.83, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "BLUE  200 HP"
+
+[node name="OrangeHealth" type="Label" parent="Interface/MatchHud"]
+unique_name_in_owner = true
+layout_mode = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -355.0
+offset_top = 22.0
+offset_right = -167.0
+theme_override_colors/font_color = Color(1, 0.68, 0.50, 1)
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 2
+text = "ORANGE  200 HP"
+
+[node name="MatchPauseButton" type="Button" parent="Interface/MatchHud"]
+unique_name_in_owner = true
+layout_mode = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -151.0
+offset_top = 15.0
+offset_right = -24.0
+offset_bottom = 53.0
+focus_mode = 0
+text = "Pause   Esc"
+
+[node name="Readout" type="PanelContainer" parent="Interface/MatchHud"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 22.0
+offset_right = -22.0
+offset_top = -120.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="Content" type="VBoxContainer" parent="Interface/MatchHud/Readout"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Top" type="HBoxContainer" parent="Interface/MatchHud/Readout/Content"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="MatchStatus" type="Label" parent="Interface/MatchHud/Readout/Content/Top"]
+layout_mode = 2
+text = "Move into position and take a shot."
+unique_name_in_owner = true
+size_flags_horizontal = 3
+
+[node name="WeaponStatus" type="Label" parent="Interface/MatchHud/Readout/Content/Top"]
+layout_mode = 2
+text = "Rocket  ·  Wind Calm  ·  Aim +26°"
+unique_name_in_owner = true
+theme_override_colors/font_color = Color(0.47, 0.88, 0.9, 1)
+
+[node name="PowerLabel" type="Label" parent="Interface/MatchHud/Readout/Content/Top"]
+layout_mode = 2
+text = "POWER"
+theme_override_colors/font_color = Color(0.47, 0.88, 0.9, 1)
+
+[node name="MatchPower" type="ProgressBar" parent="Interface/MatchHud/Readout/Content/Top"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(106, 12)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+max_value = 1.0
+step = 0.01
+show_percentage = false
+
+[node name="Controls" type="Label" parent="Interface/MatchHud/Readout/Content"]
+layout_mode = 2
+text = "A D  Move   ·   W  Jump   ·   Q  Face   ·   ↑ ↓  Aim   ·   Space  Charge & fire   ·   1  Rocket   ·   2  Grenade   ·   P  Pass"
+theme_override_colors/font_color = Color(0.67, 0.77, 0.83, 1)
+theme_override_font_sizes/font_size = 16
+
+[node name="ResultScreen" type="CenterContainer" parent="Interface"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Card" type="PanelContainer" parent="Interface/ResultScreen"]
+custom_minimum_size = Vector2(510, 0)
+layout_mode = 2
+
+[node name="Content" type="VBoxContainer" parent="Interface/ResultScreen/Card"]
+layout_mode = 2
+
+[node name="Kicker" type="Label" parent="Interface/ResultScreen/Card/Content"]
+layout_mode = 2
+text = "LOCAL MATCH  /  RESULT"
+theme_override_colors/font_color = Color(0.47, 0.88, 0.9, 1)
+theme_override_font_sizes/font_size = 14
+
+[node name="ResultTitle" type="Label" parent="Interface/ResultScreen/Card/Content"]
+layout_mode = 2
+text = "Blue wins"
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 40
+
+[node name="Rematch" type="Button" parent="Interface/ResultScreen/Card/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "Rematch"
+
+[node name="ResultHome" type="Button" parent="Interface/ResultScreen/Card/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "Main menu"
 theme_override_colors/font_color = Color(0.67, 0.77, 0.83, 1)
