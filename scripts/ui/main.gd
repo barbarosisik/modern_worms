@@ -18,6 +18,7 @@ const CONFIG_SECTION := "options"
 @onready var shade: ColorRect = %Shade
 @onready var start_button: Button = %StartButton
 @onready var match_button: Button = %MatchButton
+@onready var solo_button: Button = %SoloButton
 @onready var resume_button: Button = %ResumeButton
 @onready var volume: HSlider = %Volume
 @onready var volume_label: Label = %VolumeValue
@@ -34,6 +35,7 @@ var _fullscreen := false
 func _ready() -> void:
 	start_button.pressed.connect(_start_lab)
 	match_button.pressed.connect(_start_match)
+	solo_button.pressed.connect(_start_solo)
 	%HomeSettings.pressed.connect(_open_settings)
 	%QuitButton.pressed.connect(get_tree().quit)
 	%PauseButton.pressed.connect(_pause_game)
@@ -43,7 +45,7 @@ func _ready() -> void:
 	%ReturnHome.pressed.connect(_return_home)
 	%ApplyButton.pressed.connect(_save_settings)
 	%BackButton.pressed.connect(_close_settings)
-	%Rematch.pressed.connect(_start_match)
+	%Rematch.pressed.connect(_rematch)
 	%ResultHome.pressed.connect(_return_home)
 	volume.value_changed.connect(_update_volume_label)
 	lab.hud_changed.connect(_update_hud)
@@ -81,9 +83,20 @@ func _start_match() -> void:
 	_show_screen(Screen.MATCH)
 
 
+func _start_solo() -> void:
+	arena.reset_match(true)
+	_show_screen(Screen.MATCH)
+
+
+func _rematch() -> void:
+	arena.reset_match(arena.computer_enabled)
+	_show_screen(Screen.MATCH)
+
+
 func _pause_game() -> void:
 	lab.cancel_charge()
-	arena.cancel_input()
+	if not arena.is_computer_turn():
+		arena.cancel_input()
 	_show_screen(Screen.PAUSE)
 
 
@@ -97,6 +110,7 @@ func _return_home() -> void:
 
 func _show_result(winner: int) -> void:
 	%ResultTitle.text = "Draw" if winner == -1 else MatchSimulation.TEAM_NAMES[winner] + " wins"
+	%ResultKicker.text = "SOLO MATCH  /  RESULT" if arena.computer_enabled else "LOCAL MATCH  /  RESULT"
 	_show_screen(Screen.RESULT)
 
 
@@ -137,7 +151,7 @@ func _show_screen(next: Screen) -> void:
 	get_tree().paused = not playing
 	match next:
 		Screen.HOME:
-			match_button.grab_focus()
+			solo_button.grab_focus()
 		Screen.PAUSE:
 			resume_button.grab_focus()
 		Screen.SETTINGS:
@@ -193,6 +207,8 @@ func _update_match_hud(
 ) -> void:
 	var unit := state.active_unit()
 	var label := "%s %d" % [MatchSimulation.TEAM_NAMES[unit.team], unit.number]
+	if arena.is_computer_turn():
+		label += " (CPU)"
 	var phase := "%02ds" % ceili(state.remaining) if state.phase == MatchSimulation.Phase.ACTIVE else "Resolving"
 	%TurnTitle.text = "TURN %d  ·  %s  ·  %s" % [state.turn_number, label, phase]
 	%BlueHealth.text = "BLUE  %d HP" % state.team_health(0)
@@ -202,5 +218,6 @@ func _update_match_hud(
 	])
 	var weapon_name := "Rocket" if weapon == ArtilleryShot.Weapon.ROCKET else "Grenade"
 	%WeaponStatus.text = "%s  ·  Wind %s  ·  Aim %+.0f°" % [weapon_name, wind, angle]
-	%MatchStatus.text = state.message
+	var computer_status := arena.computer_status()
+	%MatchStatus.text = computer_status if not computer_status.is_empty() else state.message
 	%MatchPower.value = power

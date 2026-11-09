@@ -24,8 +24,9 @@ var dirty_chunks: Array[Vector2i] = []
 var _quiet_time := 0.0
 
 
-func _init() -> void:
-	reset()
+func _init(build_arena: bool = true) -> void:
+	if build_arena:
+		reset()
 
 
 func reset() -> void:
@@ -57,6 +58,18 @@ func active_unit() -> MatchUnit:
 	return units[turn_index]
 
 
+func snapshot_active_turn() -> MatchSimulation:
+	var copy := MatchSimulation.new(false)
+	copy.terrain = terrain.snapshot()
+	for unit in units:
+		copy.units.append(unit.snapshot())
+	copy.turn_index = turn_index
+	copy.turn_number = turn_number
+	copy.remaining = remaining
+	copy.wind = wind
+	return copy
+
+
 func pass_turn() -> void:
 	if phase == Phase.ACTIVE:
 		_resolve("Turn passed.")
@@ -65,19 +78,24 @@ func pass_turn() -> void:
 func fire(angle: float, power: float, weapon: ArtilleryShot.Weapon) -> bool:
 	if phase != Phase.ACTIVE or not active_unit().alive():
 		return false
-	var unit := active_unit()
-	var direction := Vector2.from_angle(deg_to_rad(angle))
-	direction.x *= unit.facing
-	var speed := lerpf(6.0, 18.0, clampf(power, 0.0, 1.0))
-	shot = ArtilleryShot.new(unit.center(), direction * speed, weapon)
-	shot.gravity = 9.0 if weapon == ArtilleryShot.Weapon.ROCKET else 13.0
-	shot.wind = wind if weapon == ArtilleryShot.Weapon.ROCKET else 0.0
-	shot.bounds = Rect2(-1.0, WATER_LEVEL, TerrainGrid.WORLD_SIZE.x + 2.0, 24.0)
-	# Check the muzzle segment on the first tick, even when the unit is pressed against cover.
-	shot.launch_offset = direction * 0.61
-	shot.ignore_center = unit.center()
+	shot = build_shot(angle, power, weapon, active_unit().facing)
 	_resolve("Rocket in flight." if weapon == ArtilleryShot.Weapon.ROCKET else "Grenade in flight.")
 	return true
+
+
+func build_shot(angle: float, power: float, weapon: ArtilleryShot.Weapon, facing: float) -> ArtilleryShot:
+	var unit := active_unit()
+	var direction := Vector2.from_angle(deg_to_rad(angle))
+	direction.x *= facing
+	var speed := lerpf(6.0, 18.0, clampf(power, 0.0, 1.0))
+	var projectile := ArtilleryShot.new(unit.center(), direction * speed, weapon)
+	projectile.gravity = 9.0 if weapon == ArtilleryShot.Weapon.ROCKET else 13.0
+	projectile.wind = wind if weapon == ArtilleryShot.Weapon.ROCKET else 0.0
+	projectile.bounds = Rect2(-1.0, WATER_LEVEL, TerrainGrid.WORLD_SIZE.x + 2.0, 24.0)
+	# Check the muzzle segment on the first tick, even when the unit is pressed against cover.
+	projectile.launch_offset = direction * 0.61
+	projectile.ignore_center = unit.center()
+	return projectile
 
 
 func step(delta: float, move_axis: float = 0.0, jump: bool = false) -> void:
@@ -113,12 +131,16 @@ func team_health(team: int) -> int:
 	return total
 
 
-func _update_shot(delta: float) -> void:
+func living_centers() -> PackedVector2Array:
 	var centers := PackedVector2Array()
 	for unit in units:
 		if unit.alive():
 			centers.append(unit.center())
-	var result := shot.step(delta, terrain, centers)
+	return centers
+
+
+func _update_shot(delta: float) -> void:
+	var result := shot.step(delta, terrain, living_centers())
 	match result:
 		ArtilleryShot.Result.IMPACT:
 			_explode(shot.position, shot.weapon)
@@ -128,24 +150,35 @@ func _update_shot(delta: float) -> void:
 			message = "The shot left the arena."
 
 
-func _explode(point: Vector2, weapon: ArtilleryShot.Weapon) -> void:
-	var radius := 2.75 if weapon == ArtilleryShot.Weapon.GRENADE else 2.45
+static func crater_radius(weapon: ArtilleryShot.Weapon) -> float:
+	return 2.75 if weapon == ArtilleryShot.Weapon.GRENADE else 2.45
+
+
+static func blast_strength(distance: float, weapon: ArtilleryShot.Weapon) -> float:
+	return clampf(1.0 - distance / (crater_radius(weapon) + 0.55), 0.0, 1.0)
+
+
+static func blast_damage(strength: float, weapon: ArtilleryShot.Weapon) -> int:
 	var max_damage := 76.0 if weapon == ArtilleryShot.Weapon.GRENADE else 66.0
+	return roundi(max_damage * strength)
+
+
+func _explode(point: Vector2, weapon: ArtilleryShot.Weapon) -> void:
 	var damage_dealt := 0
 	for unit in units:
 		if not unit.alive():
 			continue
 		var offset := unit.center() - point
-		var strength := clampf(1.0 - offset.length() / (radius + 0.55), 0.0, 1.0)
+		var strength := blast_strength(offset.length(), weapon)
 		if strength <= 0.0:
 			continue
-		var damage := roundi(max_damage * strength)
+		var damage := blast_damage(strength, weapon)
 		damage_dealt += mini(unit.health, damage)
 		unit.health = maxi(0, unit.health - damage)
 		var direction := offset.normalized()
 		unit.velocity += Vector2(direction.x * 9.5, maxf(0.3, direction.y) * 7.0 + 2.3) * strength
 		unit.grounded = false
-	dirty_chunks = terrain.cut_disc(point, radius)
+	dirty_chunks = terrain.cut_disc(point, crater_radius(weapon))
 	last_blast = point
 	message = "%d damage dealt." % damage_dealt if damage_dealt > 0 else "Terrain hit."
 

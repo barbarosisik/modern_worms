@@ -37,10 +37,18 @@
 - Verified on Godot 4.7.2 Standard for Windows. Both headless suites passed. In a Forward+ run at 1280 × 720, the opening rocket damaged the far team and cut a crater, control passed to the next surviving unit, and a match reached its result using only regular inputs. Rematch restored the original arena, clock, and units.
 - The physics values are prototype tuning. The next gameplay milestone is the computer opponent, and comparison against the Steam reference remains open.
 
+## 2026-11-09 | M3 solo match
+
+- Built `feature/solo-opponent` from `946483d`. **Play vs Computer** gives Blue to the player and Orange to the CPU. Local play and the terrain lab remain available. A solo rematch starts with a fresh arena and preserves solo mode.
+- The opponent uses a bounded rule-based search. It checks short walks on a copy of the current arena, samples angles and charge for rockets and grenades, then resolves its best candidates through the real combat rules. Its score rewards enemy damage, eliminations, and lost footing, with a penalty for damage or lost footing on its own side. A boxed-in unit can pass.
+- The match shows when the computer is choosing, moving, and aiming. Its shots use the same launch parameters, wind, collision, and turn resolution as player shots. Pause freezes its actions, and player combat input is disabled on the CPU's turn.
+- Godot 4.7.2 passed the solo, local match, and terrain lab headless checks. A Windows Forward+ run began at the main menu, observed the CPU walk and fire a grenade, reached an Orange victory through normal match rules, and started a fresh solo rematch.
+- The solo MVP uses one arena and one CPU difficulty. Prototype balance and reference measurement remain open.
+
 ## Next session
 
 - [ ] On `research/reference-measurements`, confirm access to the Steam PC reference and record its build ID, scheme, map, and capture setup. Collect measurements for turn handoff, movement, shot arcs, and impacts before tuning M2. Save derived measurements, repeatability, and uncertainty with the project.
-- [ ] For M3, start `feature/solo-opponent` from the integrated local-match baseline. Let the CPU use the same turn clock, movement, aim, and weapon rules. Give its shot search a time limit and cover blocked shots, skipped turns, and rematches.
+- [ ] For M4, start `feature/pickups` from the integrated solo baseline. Playtest one visible pickup that makes movement a tactical choice before adding a shop.
 - [ ] Decide whether the turn clock alone supplies the desired movement constraint. Revisit the economy and original character direction once the match can be played end to end.
 
 For each new log entry, record the date, branch or commit, completed work, verification performed, open questions, and the next concrete action.
