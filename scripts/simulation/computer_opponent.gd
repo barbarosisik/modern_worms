@@ -59,6 +59,7 @@ class Plan:
 
 var chosen_plan: Plan
 var rng := RandomNumberGenerator.new()
+var error_scale := 1.0
 var _best_score := 0.0
 var _candidates: Array[Plan] = []
 var _finalists: Array[Plan] = []
@@ -129,9 +130,9 @@ func _commit_choice() -> void:
 	var range_factor := _shot_range(chosen_plan)
 	# Commit once so the previewed ideal aim cannot correct an imperfect release.
 	chosen_plan.release_angle = clampf(
-		chosen_plan.angle + (rng.randf() - rng.randf()) * lerpf(2.0, 13.0, range_factor), -35.0, 80.0
+		chosen_plan.angle + (rng.randf() - rng.randf()) * lerpf(2.0, 13.0, range_factor) * error_scale, -35.0, 80.0
 	)
-	var timed_power := chosen_plan.power + (rng.randf() - rng.randf()) * lerpf(0.03, 0.32, range_factor)
+	var timed_power := chosen_plan.power + (rng.randf() - rng.randf()) * lerpf(0.03, 0.32, range_factor) * error_scale
 	# Releasing late at the top is weaker, just as it is on the player's meter.
 	chosen_plan.release_power = minf(absf(timed_power), 2.0 - timed_power)
 

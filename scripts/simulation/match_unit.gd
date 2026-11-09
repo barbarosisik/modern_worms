@@ -17,6 +17,8 @@ var facing: float
 var health := MAX_HEALTH
 var grounded := true
 var guide_tier := 0
+var display_name := ""
+var outfit := 0
 
 
 func _init(side: int, unit_number: int, start: Vector2) -> void:
@@ -37,6 +39,8 @@ func snapshot() -> MatchUnit:
 	copy.health = health
 	copy.grounded = grounded
 	copy.guide_tier = guide_tier
+	copy.display_name = display_name
+	copy.outfit = outfit
 	return copy
 
 

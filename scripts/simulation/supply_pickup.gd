@@ -10,7 +10,8 @@ const SITE_SAMPLES := 12
 
 
 static func choose_site(
-	terrain: TerrainGrid, units: Array[MatchUnit], water: float, rng: RandomNumberGenerator
+	terrain: TerrainGrid, units: Array[MatchUnit], water: float, rng: RandomNumberGenerator,
+	keep_clear: Vector2 = Vector2.INF
 ) -> Vector2:
 	var living := units.filter(func(unit: MatchUnit) -> bool: return unit.alive())
 	living.sort_custom(func(a: MatchUnit, b: MatchUnit) -> bool: return a.feet.x < b.feet.x)
@@ -25,7 +26,7 @@ static func choose_site(
 			var x := lerpf(left.feet.x + UNIT_CLEARANCE, right.feet.x - UNIT_CLEARANCE,
 				float(j) / (SITE_SAMPLES - 1))
 			var site := supported_position(terrain, Vector2(x, ceiling), water)
-			if site != Vector2.INF:
+			if site != Vector2.INF and (keep_clear == Vector2.INF or site.distance_to(keep_clear) >= UNIT_CLEARANCE):
 				sites.append(site)
 	return Vector2.INF if sites.is_empty() else sites[rng.randi_range(0, sites.size() - 1)]
 
