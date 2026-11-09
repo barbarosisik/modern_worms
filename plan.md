@@ -13,8 +13,8 @@ Updated 9 November 2026. Start with a Windows single-player artillery game built
 | **M3 · Playable solo match** | `feature/solo-opponent`, `feature/match-flow`, `feature/match-ui` | One person can start, finish, and restart a match against the computer on one arena. The HUD shows the active team, turn timer, health, wind, selected weapon, and shot power. The result screen offers a rematch and a return to the main menu. |
 | **M3a · Mouse aim and CPU balance** | `feature/mouse-aim-and-cpu-balance` | Aim with the cursor and release a looping charge. Blue sees a short fading guide. The CPU can hit, miss, or pass under the same combat rules. Tune the default through solo playtests. |
 | **M4 · Drag aiming and pickups** | `feature/drag-aim-pickups-and-arena`, `feature/match-economy` | Blue starts with a 12-dot guide. Pull back to set aim and power. A unit or projectile can collect a random supply between separated opposing units. Playtest pickup value and placement before setting prices. |
-| **M5 · Characters and presentation** | `art/character-direction`, `feature/character-customization`, `feature/arena-presentation` | Replace the capsules with two customizable human leads. Check that silhouettes, shots, and crater edges remain readable against the landscape. |
-| **M6 · Campaign and hub slice** | `feature/campaign-flow`, `feature/campaign-hub`, `feature/supporter-roster`, `feature/campaign-upgrades` | Play the first two levels end to end, rescue one supporter, return to a walkable room, and spend supplies through distinct team and character upgrade screens. |
+| **M5 · Characters and presentation** | `feature/signal-fires-first-chapter`, `art/character-direction` | The story has stylized 3D leads, three jacket colors for each, and a dog model. Refine the silhouettes and add more appearance choices after playtesting. |
+| **M6 · Campaign and hub slice** | `feature/signal-fires-first-chapter` | Play First Signal and Ferry Landing, rescue and control Scout, visit a walkable shelter, and spend supplies through separate team and character upgrade screens. Resume at the last saved checkpoint. |
 | **M7 · Ten-level story** | `feature/campaign-levels`, `feature/cpu-difficulty-profiles` | The player completes an original ten-level story. Arenas grow, AI becomes more capable, and rescued friends and pets join the turn queue. |
 | **M8 · Polish and release** | Scope per feature after the campaign slice | Playtest onboarding, UI scaling, accessibility, progression balance, and Windows export and performance. |
 
@@ -28,18 +28,19 @@ M3 is the single-match MVP. M6 is the first playable story slice. Rope traversal
 
 ## Campaign direction
 
-**Working title** *Signal Fires*. Two volunteer rescuers, a man and a woman in love, return to their mountain valley after a flood. An armed salvage crew has seized the relay that would let isolated towns call for help. The couple crosses flooded routes, rescues neighbors and animals, and works its way back to the relay. Short conversations back at their shelter show how they make decisions together and what the valley means to them.
+**Working title** *Signal Fires*. Mara and Eli, volunteer rescuers in love, return to their mountain valley after a flood. An armed salvage crew has seized the relay that would let isolated towns call for help. The couple crosses flooded routes, rescues neighbors and animals, and works its way back to the relay. Short conversations back at their shelter show how they make decisions together and what the valley means to them.
 
-- Before level one, let the player customize each lead's appearance independently, starting with hair, clothing, and colors. Treat appearance as cosmetic and keep it separate from combat stats.
+- Before level one, let the player customize each lead's appearance independently. The first chapter offers three jacket colors with live 3D previews. Add hair and clothing options in a later art pass. Keep appearance separate from combat stats.
 - Give each rescued friend or pet a stable place in the player turn queue after the two leads, in rescue order. Complete a rescue objective to unlock that supporter. Skip defeated units and keep the queue visible once the roster grows. Prototype with one supporter before expanding the party.
 - After each cleared level, return to a walkable shelter using the same 3D side view. Approach the **map table** to see chapter progress and choose the next mission. Approach the **supply bench** for the team upgrade screen and the **roster board** for individual upgrades. Give each recruited character a subtab. Use proximity prompts and an interact key, and keep menus accessible with keyboard or mouse.
-- Team upgrades affect the whole roster. Individual upgrades apply to one lead or supporter. Try an individual trajectory upgrade first, then use playtesting to price it and choose a first team upgrade. Proposed reset rule for the first slice: keep earned upgrades between levels during one campaign, clear temporary combat effects each battle, and reset skills and earned upgrades when starting a new campaign or standalone match. Retain cosmetic preferences separately. Restore the pre-level state on retry.
+- A mission clear earns two supplies plus any picked up by the player's team. At the shelter, a field kit costs one supply and gives every rescuer +15 starting HP. Individual training costs one supply per trajectory tier and applies to the selected roster member. These prices are starting values for the playtest.
+- Continue Story opens the last checkpoint. Checkpoints save after starting a story, clearing a mission, and buying an upgrade. Retry restores the battlefield and starting loadout while keeping the checkpoint wallet. New Story resets progress, supplies, and upgrades and starts with the player's chosen outfits.
 - Use short, increasingly distinct stages as in the original *Angry Birds*. Use a room with physical interaction points to pace missions, inspired by the House of Hades. [Rovio's original-level examples](https://www.rovio.com/articles/bringing-back-2012-dev-diary-3-progress-update/) · [Supergiant's House of Hades notes](https://www.supergiantgames.com/blog/6/)
 
 | Level | Story beat and tactical step |
 | --- | --- |
-| 1 · First Signal | The couple reunites at the flooded lakeshore. Learn movement and the pull-back shot against a slow scout on the smallest arena. |
-| 2 · Ferry Landing | Clear a route to the ferry and rescue a dog. Introduce the supply tradeoff and the first supporter turn. |
+| 1 · First Signal | Mara and Eli reunite at the flooded lakeshore. Reach Scout on foot and clear the lookout on the smaller arena. Scout joins the team after the rescue. |
+| 2 · Ferry Landing | Clear the dock with Scout as the third playable rescuer. The wider arena has more wind and two opponents with less aim error. |
 | 3 · Through the Pines | Use cover to reach an old friend cut off in a forest outpost. The CPU starts moving to improve firing positions. |
 | 4 · Switchback | Cross a larger vertical arena and recover a battery for the relay. Enemies use cover and arcing shots more often. |
 | 5 · Broken Bridge | Reopen a route for evacuees. The CPU compares more firing positions and uses craters to threaten crossings. |
@@ -49,7 +50,7 @@ M3 is the single-match MVP. M6 is the first playable story slice. Rope traversal
 | 9 · Last Ascent | Climb to the relay with the full rescue crew. Stronger opponents apply pressure across several lanes. |
 | 10 · Light the Valley | Retake the relay and guide the valley's evacuation. Use the largest arena and the toughest CPU profile. End with the couple and rescued crew sending the signal together. |
 
-Build and playtest levels one and two before committing to later layouts. Give the CPU more time to compare positions, smarter target priorities, and smaller aim errors as difficulty rises. Keep its physics and turn rules consistent across the campaign.
+Playtest the first two levels before laying out the rest. In *Through the Pines*, prototype a new rescue and give Scout a support ability that makes his turn feel different. As difficulty rises, give the CPU more time to compare positions, smarter target priorities, and smaller aim errors. Keep its physics and turn rules consistent across the campaign.
 
 ## M1 · Destructible terrain lab
 

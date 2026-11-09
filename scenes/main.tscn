@@ -4,6 +4,8 @@
 [ext_resource type="PackedScene" path="res://scenes/terrain_lab.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/match_arena.tscn" id="3"]
 [ext_resource type="Texture2D" path="res://assets/backgrounds/lake_chelan.jpg" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/campaign_shelter.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/campaign_panel.tscn" id="6"]
 
 [sub_resource type="Gradient" id="HeadingGradient"]
 colors = PackedColorArray(0.035, 0.07, 0.10, 0.82, 0.035, 0.07, 0.10, 0)
@@ -111,6 +113,10 @@ Button/styles/pressed = SubResource("ButtonPressed")
 Button/styles/focus = SubResource("Focus")
 CheckButton/styles/focus = SubResource("Focus")
 HSlider/styles/focus = SubResource("Focus")
+TabBar/styles/tab_selected = SubResource("ButtonPressed")
+TabBar/styles/tab_unselected = SubResource("Button")
+TabBar/styles/tab_hovered = SubResource("ButtonHover")
+TabBar/styles/tab_focus = SubResource("Focus")
 Label/colors/font_color = Color(0.89, 0.95, 0.98, 1)
 PanelContainer/styles/panel = SubResource("Panel")
 ProgressBar/styles/background = SubResource("BarBackground")
@@ -127,6 +133,8 @@ script = ExtResource("1")
 [node name="TerrainLab" parent="." instance=ExtResource("2")]
 
 [node name="MatchArena" parent="." instance=ExtResource("3")]
+
+[node name="CampaignShelter" parent="." instance=ExtResource("5")]
 
 [node name="ArenaBackdrop" type="CanvasLayer" parent="."]
 layer = -1
@@ -193,21 +201,35 @@ layout_mode = 2
 
 [node name="Kicker" type="Label" parent="Interface/Home/Card/Content"]
 layout_mode = 2
-text = "M3  /  SOLO & LOCAL PLAY"
+text = "TURN-BASED ARTILLERY  /  CHAPTER ONE"
 theme_override_colors/font_color = Color(0.47, 0.88, 0.9, 1)
 theme_override_font_sizes/font_size = 14
 
 [node name="Title" type="Label" parent="Interface/Home/Card/Content"]
 layout_mode = 2
-text = "Modern Worms"
+text = "Signal Fires"
 theme_override_font_sizes/font_size = 40
 
 [node name="Description" type="Label" parent="Interface/Home/Card/Content"]
 layout_mode = 2
-text = "Challenge the computer, share a keyboard for a local match, or practice in the terrain lab."
+text = "Two rescuers return to a flooded valley. Take back the crossing in Story, or jump into a skirmish."
 theme_override_colors/font_color = Color(0.67, 0.77, 0.83, 1)
 custom_minimum_size = Vector2(430, 0)
 autowrap_mode = 2
+
+[node name="ContinueStory" type="Button" parent="Interface/Home/Card/Content"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_styles/normal = SubResource("ButtonPressed")
+text = "Continue story"
+
+[node name="NewStory" type="Button" parent="Interface/Home/Card/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "New story"
 
 [node name="SoloButton" type="Button" parent="Interface/Home/Card/Content"]
 unique_name_in_owner = true
@@ -277,7 +299,7 @@ theme_override_font_sizes/font_size = 40
 
 [node name="Description" type="Label" parent="Interface/PauseScreen/Card/Content"]
 layout_mode = 2
-text = "Resume the current shot or adjust your settings."
+text = "Resume play or adjust your settings."
 theme_override_colors/font_color = Color(0.67, 0.77, 0.83, 1)
 custom_minimum_size = Vector2(430, 0)
 autowrap_mode = 2
@@ -594,6 +616,116 @@ text = "A D Move   ·   W Jump   ·   Hold LMB, pull back and release   ·   1 R
 theme_override_colors/font_color = Color(0.67, 0.77, 0.83, 1)
 theme_override_font_sizes/font_size = 16
 
+[node name="MissionObjective" type="Label" parent="Interface/MatchHud"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchor_right = 1.0
+offset_top = 59.0
+offset_bottom = 85.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.84, 0.53, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.07, 0.1, 0.92)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+
+[node name="PlayerQueue" type="Label" parent="Interface/MatchHud"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchor_right = 1.0
+offset_top = 90.0
+offset_bottom = 113.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.8, 0.91, 0.95, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.07, 0.1, 0.92)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 15
+horizontal_alignment = 1
+
+[node name="ShelterHud" type="Control" parent="Interface"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Heading" type="Label" parent="Interface/ShelterHud"]
+layout_mode = 0
+offset_left = 27.0
+offset_top = 23.0
+theme_override_colors/font_color = Color(1, 0.85, 0.59, 1)
+theme_override_font_sizes/font_size = 25
+text = "RANGER SHELTER"
+
+[node name="ShelterProgress" type="Label" parent="Interface/ShelterHud"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 28.0
+offset_top = 60.0
+theme_override_font_sizes/font_size = 15
+
+[node name="ShelterPause" type="Button" parent="Interface/ShelterHud"]
+unique_name_in_owner = true
+layout_mode = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -151.0
+offset_top = 15.0
+offset_right = -24.0
+offset_bottom = 53.0
+focus_mode = 0
+text = "Pause   Esc"
+
+[node name="StationCard" type="PanelContainer" parent="Interface/ShelterHud"]
+layout_mode = 1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 22.0
+offset_top = -123.0
+offset_right = -22.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="Row" type="HBoxContainer" parent="Interface/ShelterHud/StationCard"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Text" type="VBoxContainer" parent="Interface/ShelterHud/StationCard/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 5
+
+[node name="ShelterStory" type="Label" parent="Interface/ShelterHud/StationCard/Row/Text"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Controls" type="Label" parent="Interface/ShelterHud/StationCard/Row/Text"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.67, 0.77, 0.83, 1)
+theme_override_font_sizes/font_size = 16
+text = "A D   Walk between stations   ·   E   Open the nearby station"
+
+[node name="StationAction" type="Button" parent="Interface/ShelterHud/StationCard/Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(246, 42)
+layout_mode = 2
+size_flags_vertical = 4
+text = "E   ·   Open Map table"
+
+[node name="CampaignPanel" parent="Interface" instance=ExtResource("6")]
+unique_name_in_owner = true
+layout_mode = 1
+
 [node name="ResultScreen" type="CenterContainer" parent="Interface"]
 unique_name_in_owner = true
 visible = false
@@ -623,6 +755,12 @@ layout_mode = 2
 text = "Blue wins"
 unique_name_in_owner = true
 theme_override_font_sizes/font_size = 40
+
+[node name="ResultDetail" type="Label" parent="Interface/ResultScreen/Card/Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+autowrap_mode = 2
 
 [node name="Rematch" type="Button" parent="Interface/ResultScreen/Card/Content"]
 unique_name_in_owner = true

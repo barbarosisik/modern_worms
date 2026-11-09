@@ -27,8 +27,9 @@ const COMPUTER_WAIT_TICKS := 12
 
 var simulation := MatchSimulation.new()
 var computer_enabled := false
-var _unit_views: Array[MeshInstance3D] = []
+var _unit_views: Array[Node3D] = []
 var _unit_labels: Array[Label3D] = []
+var _rescue_view: CampaignActor
 var _angle := START_ANGLE
 var _power := 0.0
 var _weapon := ArtilleryShot.Weapon.ROCKET
@@ -48,14 +49,27 @@ func _ready() -> void:
 	launch_sound.stream = ArtilleryAudio.tone(0.17, 330.0, 150.0)
 	impact_sound.stream = ArtilleryAudio.tone(0.28, 108.0, 32.0)
 	supply_sound.stream = ArtilleryAudio.tone(0.20, 440.0, 880.0)
-	for unit in simulation.units:
-		_create_unit_view(unit)
+	_rescue_view = CampaignActor.new(CampaignRun.ROSTER[2])
+	add_child(_rescue_view)
+	_rescue_view.hide()
+	var marker := _create_label(Color("#ffda83"))
+	marker.text = "RESCUE SCOUT"
+	marker.position = Vector3(0.0, 1.08, 0.58)
+	_rescue_view.add_child(marker)
 
 
-func reset_match(against_computer: bool = false) -> void:
+func reset_match(against_computer: bool = false, mission: CampaignMission = null) -> void:
 	computer_enabled = against_computer
-	simulation.reset()
+	simulation.reset(mission)
+	_computer.error_scale = mission.cpu_error_scale if mission != null else 1.0
+	if mission != null and mission.index == 0:
+		camera.position = Vector3(14.4, 8.6, 32.5)
+		camera.look_at(Vector3(12.5, 4.4, 0.0))
+	else:
+		camera.position = Vector3(18.5, 11.0, 44.0)
+		camera.look_at(Vector3(15.5, 5.5, 0.0))
 	terrain_mesh.rebuild_all(simulation.terrain)
+	_rebuild_unit_views()
 	_reset_aim()
 	_flash_time = 0.0
 	flash.hide()
@@ -170,7 +184,7 @@ func _physics_process(delta: float) -> void:
 	flash.visible = _flash_time > 0.0
 	if flash.visible:
 		flash.scale = Vector3.ONE * lerpf(2.45, 0.62, _flash_time / FLASH_DURATION)
-	_refresh_view()
+	_refresh_view(delta)
 	if previous_phase != MatchSimulation.Phase.FINISHED and simulation.phase == MatchSimulation.Phase.FINISHED:
 		match_finished.emit(simulation.winner)
 
@@ -249,29 +263,51 @@ func _present_blast() -> void:
 	impact_sound.play()
 
 
-func _create_unit_view(unit: MatchUnit) -> void:
+func _rebuild_unit_views() -> void:
+	for view in _unit_views:
+		remove_child(view)
+		view.queue_free()
+	for label in _unit_labels:
+		remove_child(label)
+		label.queue_free()
+	_unit_views.clear()
+	_unit_labels.clear()
+	for unit in simulation.units:
+		var team_color := BLUE if unit.team == 0 else ORANGE
+		var body := _create_capsule(team_color) if unit.display_name.is_empty() else (
+			CampaignActor.new(unit.display_name, unit.outfit) as Node3D
+		)
+		add_child(body)
+		_unit_views.append(body)
+		var label := _create_label(team_color.lightened(0.24))
+		add_child(label)
+		_unit_labels.append(label)
+
+
+func _create_capsule(team_color: Color) -> Node3D:
 	var material := StandardMaterial3D.new()
-	material.albedo_color = BLUE if unit.team == 0 else ORANGE
+	material.albedo_color = team_color
 	material.roughness = 0.85
 	var capsule := CapsuleMesh.new()
 	capsule.radius = MatchUnit.HALF_WIDTH
 	capsule.height = MatchUnit.HEIGHT
 	capsule.material = material
-	var body := MeshInstance3D.new()
-	body.mesh = capsule
-	add_child(body)
-	_unit_views.append(body)
+	var mesh := MeshInstance3D.new()
+	mesh.mesh = capsule
+	return mesh
+
+
+func _create_label(tint: Color) -> Label3D:
 	var label := Label3D.new()
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.font_size = 46
 	label.outline_size = 8
 	label.pixel_size = 0.0078
-	label.modulate = material.albedo_color.lightened(0.24)
-	add_child(label)
-	_unit_labels.append(label)
+	label.modulate = tint
+	return label
 
 
-func _refresh_view() -> void:
+func _refresh_view(delta: float = 0.0) -> void:
 	var active := simulation.active_unit()
 	var can_aim := simulation.phase == MatchSimulation.Phase.ACTIVE and active.alive()
 	for i in range(simulation.units.size()):
@@ -281,12 +317,23 @@ func _refresh_view() -> void:
 		body.visible = unit.alive()
 		label.visible = unit.alive()
 		if body.visible:
-			body.position = _in_world(unit.center())
+			if body is CampaignActor:
+				body.position = _in_world(unit.feet)
+				body.pose(unit.facing, unit.velocity.x, delta)
+			else:
+				body.position = _in_world(unit.center())
 			label.position = Vector3(unit.feet.x, unit.feet.y + 1.24, 0.58)
-			label.text = "%s%d  ·  %d" % ["B" if unit.team == 0 else "O", unit.number, unit.health]
+			var call_sign := unit.display_name
+			if call_sign.is_empty():
+				call_sign = "%s%d" % ["B" if unit.team == 0 else "O", unit.number]
+			label.text = "%s  ·  %d" % [call_sign, unit.health]
 			if can_aim and unit == active:
 				label.text = "▼\n" + label.text
 				label.position.y += 0.22
+	var target := simulation.rescue_target
+	_rescue_view.visible = target != null and target.alive() and not simulation.rescued
+	if _rescue_view.visible:
+		_rescue_view.position = _in_world(target.feet)
 	if can_aim and active.team == 0:
 		var preview := simulation.build_shot(_angle, _power, _weapon, active.facing)
 		trajectory_guide.preview(preview, simulation.terrain, simulation.living_centers(), active.guide_tier)

@@ -62,11 +62,19 @@
 - Verified five headless suites in Godot 4.7.2 on Windows. The Forward+ check confirmed pull-back input, HUD power, both guide lengths, and the photographic backdrop at 1280 × 720.
 - Added the draft *Signal Fires* campaign to [the plan](plan.md). It follows two customizable human lovers through ten increasingly difficult rescue levels. Rescued friends and pets join the queue after the leads. A walkable shelter connects the map table, team upgrades, and per-character upgrade tabs.
 
+## 2026-11-09 | M6 playable Signal Fires chapter
+
+- Built `feature/signal-fires-first-chapter` from `b42c129`. The title screen opens New Story and Continue Story alongside skirmish and the Terrain Lab. Mara and Eli have selectable jacket colors and live 3D previews.
+- **First Signal** requires walking to Scout and defeating the lookout. Either order works. The rescue moved into the first mission so Scout can take a full turn in **Ferry Landing**. The second mission adds a wider battlefield, stronger wind, and two more accurate opponents. Turn rotation now follows the living members of each side's roster.
+- The ranger shelter has a map table, a supply bench, and a roster board. Walk to a station and press E or click its prompt. Two supplies are earned on each clear, plus what the rescuers collect in combat. The bench sells a team field kit for +15 starting HP, and the board has individual trajectory training for Mara, Eli, and Scout.
+- A local checkpoint stores chapter progress, supplies, training, the kit, and outfits. Retry uses the saved loadout and a fresh battlefield. New Story starts progress and upgrades over with the selected outfits.
+- Verified both missions with real drag shots, the rescue before and after the lookout falls, Scout's turn, team and individual purchases, save and reload, retry, and the new-story reset. Checked the wardrobe, arena HUD, shelter, and roster in Windows Forward+.
+
 ## Next session
 
 - [ ] On `research/reference-measurements`, confirm access to the Steam PC reference and record its build ID, scheme, map, and capture setup. Collect measurements for turn handoff, movement, shot arcs, and impacts before tuning M2. Save derived measurements, repeatability, and uncertainty with the project.
 - [ ] Play a full solo match with pull-back aim and the 12-dot guide. Check the distance to full power, supply accessibility by foot and shot, and CPU behavior after the terrain breaks up.
-- [ ] Use that playtest to choose supply value and a first earned trajectory upgrade. Prototype one team upgrade and one character upgrade on separate screens before pricing more skills.
-- [ ] Prototype two customizable lead characters, a two-level rescue with one recruit, and a side-view shelter. Verify that upgrades carry between levels within one campaign and reset when a new game starts. Expand the difficulty curve and maps to ten levels after the slice works.
+- [ ] Play both story missions from a fresh save. Tune early difficulty, the amount of loot collected on foot versus by shooting, and the feel and prices of the two upgrades.
+- [ ] Build *Through the Pines* next. Give Scout a distinct support action, add the next rescue, and test the larger turn queue before adding more stages. Extend toward ten levels once the first chapter is balanced.
 
 For each new log entry, record the date, branch or commit, completed work, verification performed, open questions, and the next concrete action.

@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/campaign/campaign_shelter.gd" id="1"]
+
+[sub_resource type="Environment" id="ShelterEnvironment"]
+background_mode = 3
+background_canvas_max_layer = -1
+ambient_light_source = 3
+ambient_light_color = Color(0.88, 0.92, 1, 1)
+ambient_light_energy = 0.7
+tonemap_mode = 2
+
+[node name="CampaignShelter" type="Node3D"]
+process_mode = 4
+visible = false
+script = ExtResource("1")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+position = Vector3(0, 3.6, 17.8)
+fov = 29.0
+environment = SubResource("ShelterEnvironment")
+
+[node name="WindowLight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-37, -29, 0)
+light_color = Color(0.78, 0.9, 1, 1)
+light_energy = 1.13
+shadow_enabled = true
+
+[node name="CabinLamp" type="OmniLight3D" parent="."]
+position = Vector3(0, 3.2, 2)
+light_color = Color(1, 0.67, 0.36, 1)
+light_energy = 1.25
+omni_range = 11.0
+
+[node name="Crew" type="Node3D" parent="."]

@@ -8,6 +8,7 @@ const WATER_LEVEL := 0.8
 const QUIET_TIME := 0.35
 const WIND_PATTERN := [0.0, -1.25, 1.4, -0.7, 0.85, 1.65]
 const TEAM_NAMES := ["Blue", "Orange"]
+const RESCUE_DISTANCE := 0.82
 
 var terrain: TerrainGrid
 var units: Array[MatchUnit] = []
@@ -24,8 +25,12 @@ var dirty_chunks: Array[Vector2i] = []
 var supply_position := Vector2.INF
 var supplies := PackedInt32Array([0, 0])
 var collected_supply_team := -1
+var rescue_target: MatchUnit
+var rescued := false
 var _supply_rng: RandomNumberGenerator
 var _quiet_time := 0.0
+var _wind_scale := 1.0
+var _last_turn_on_team := PackedInt32Array([-1, -1])
 
 
 func _init(build_arena: bool = true) -> void:
@@ -34,7 +39,38 @@ func _init(build_arena: bool = true) -> void:
 		reset()
 
 
-func reset() -> void:
+func reset(mission: CampaignMission = null) -> void:
+	if mission == null:
+		_set_up_skirmish()
+		rescue_target = null
+		_wind_scale = 1.0
+	else:
+		terrain = mission.terrain
+		units = mission.units
+		rescue_target = mission.rescue_target
+		_wind_scale = mission.wind_scale
+	shot = null
+	phase = Phase.ACTIVE
+	turn_index = 0
+	turn_number = 1
+	remaining = TURN_SECONDS
+	winner = -1
+	wind = 0.0
+	message = "Walk or shoot through a supply to collect it."
+	if mission != null:
+		message = CampaignRun.OBJECTIVES[mission.index]
+	last_blast = Vector2.INF
+	dirty_chunks.clear()
+	supplies.fill(0)
+	supply_position = Vector2.INF
+	collected_supply_team = -1
+	rescued = false
+	_last_turn_on_team.fill(-1)
+	_spawn_supply()
+	_quiet_time = 0.0
+
+
+func _set_up_skirmish() -> void:
 	terrain = TerrainGrid.new()
 	terrain.fill_rect(Rect2i(8, 10, 72, 22))
 	terrain.fill_rect(Rect2i(92, 10, 72, 10))
@@ -46,21 +82,6 @@ func reset() -> void:
 		MatchUnit.new(0, 2, Vector2(8.5, 4.0)),
 		MatchUnit.new(1, 2, Vector2(23.5, 4.0)),
 	]
-	shot = null
-	phase = Phase.ACTIVE
-	turn_index = 0
-	turn_number = 1
-	remaining = TURN_SECONDS
-	winner = -1
-	wind = 0.0
-	message = "Walk or shoot through a supply to collect it."
-	last_blast = Vector2.INF
-	dirty_chunks.clear()
-	supplies.fill(0)
-	supply_position = Vector2.INF
-	collected_supply_team = -1
-	_spawn_supply()
-	_quiet_time = 0.0
 
 
 func active_unit() -> MatchUnit:
@@ -76,6 +97,11 @@ func snapshot_active_turn() -> MatchSimulation:
 	copy.turn_number = turn_number
 	copy.remaining = remaining
 	copy.wind = wind
+	copy._wind_scale = _wind_scale
+	copy._last_turn_on_team = _last_turn_on_team.duplicate()
+	copy.rescued = rescued
+	if rescue_target != null:
+		copy.rescue_target = rescue_target.snapshot()
 	return copy
 
 
@@ -119,6 +145,7 @@ func step(delta: float, move_axis: float = 0.0, jump: bool = false) -> void:
 			_resolve("Time is up.")
 	if shot != null:
 		_update_shot(delta)
+	_step_rescue_target(delta)
 	for unit in units:
 		if not unit.alive():
 			continue
@@ -132,6 +159,7 @@ func step(delta: float, move_axis: float = 0.0, jump: bool = false) -> void:
 				_resolve(message)
 		elif controlled:
 			_collect_supply(unit.team, previous_center, unit.center(), MatchUnit.HALF_WIDTH)
+			_check_rescue(unit, previous_center)
 	if phase == Phase.RESOLVING:
 		_check_settlement(delta)
 
@@ -167,7 +195,8 @@ func _update_shot(delta: float) -> void:
 
 func _spawn_supply() -> void:
 	if _supply_rng != null and supply_position == Vector2.INF:
-		supply_position = SupplyPickup.choose_site(terrain, units, WATER_LEVEL, _supply_rng)
+		var keep_clear := rescue_target.center() if rescue_target != null and not rescued else Vector2.INF
+		supply_position = SupplyPickup.choose_site(terrain, units, WATER_LEVEL, _supply_rng, keep_clear)
 
 
 func _collect_supply(team: int, start: Vector2, end: Vector2, extra_radius: float = 0.0) -> void:
@@ -175,6 +204,28 @@ func _collect_supply(team: int, start: Vector2, end: Vector2, extra_radius: floa
 		supplies[team] += 1
 		collected_supply_team = team
 		supply_position = Vector2.INF
+
+
+func _step_rescue_target(delta: float) -> void:
+	if rescue_target == null or rescued or not rescue_target.alive():
+		return
+	rescue_target.step(terrain, delta, 0.0, false, false)
+	if rescue_target.feet.y <= WATER_LEVEL:
+		rescue_target.health = 0
+		_resolve("Scout was swept away. Reach him before the bank gives way.")
+
+
+func _check_rescue(unit: MatchUnit, start: Vector2) -> void:
+	if unit.team != 0 or rescue_target == null or rescued or not rescue_target.alive():
+		return
+	var target := rescue_target.center()
+	var closest := Geometry2D.get_closest_point_to_segment(target, start, unit.center())
+	if closest.distance_squared_to(target) > RESCUE_DISTANCE * RESCUE_DISTANCE:
+		return
+	rescued = true
+	message = "Scout is safe. Clear the bank to take him to shelter."
+	if team_health(1) == 0:
+		_resolve("Scout is safe.")
 
 
 static func crater_radius(weapon: ArtilleryShot.Weapon) -> float:
@@ -230,17 +281,28 @@ func _check_settlement(delta: float) -> void:
 		return
 	var blue := team_health(0)
 	var orange := team_health(1)
-	if blue == 0 or orange == 0:
+	if rescue_target != null and not rescued and not rescue_target.alive():
+		winner = 1
+		phase = Phase.FINISHED
+		return
+	if blue == 0 or (orange == 0 and (rescue_target == null or rescued)):
 		winner = 0 if blue > 0 else (1 if orange > 0 else -1)
 		phase = Phase.FINISHED
 		return
-	var next_team := 1 - active_unit().team
-	var turn_on_side := floori(float(turn_number) / 2.0)
-	var preferred := (turn_on_side % 2) * 2 + next_team
-	turn_index = preferred if units[preferred].alive() else (preferred + 2) % units.size()
+	_last_turn_on_team[active_unit().team] = turn_index
+	var next_team := 1 - active_unit().team if orange > 0 else 0
+	turn_index = _next_unit_on_team(next_team)
 	turn_number += 1
-	wind = WIND_PATTERN[(turn_number - 1) % WIND_PATTERN.size()]
+	wind = WIND_PATTERN[(turn_number - 1) % WIND_PATTERN.size()] * _wind_scale
 	remaining = TURN_SECONDS
 	phase = Phase.ACTIVE
 	if turn_number % 2 == 1:
 		_spawn_supply()
+
+
+func _next_unit_on_team(team: int) -> int:
+	for offset in range(1, units.size() + 1):
+		var index := (_last_turn_on_team[team] + offset) % units.size()
+		if units[index].team == team and units[index].alive():
+			return index
+	return turn_index

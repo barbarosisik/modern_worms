@@ -1,0 +1,94 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/campaign_panel.gd" id="1"]
+
+[node name="CampaignPanel" type="CenterContainer"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Card" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(650, 0)
+layout_mode = 2
+
+[node name="Stack" type="VBoxContainer" parent="Card"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Kicker" type="Label" parent="Card/Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.54, 0.84, 0.87, 1)
+theme_override_font_sizes/font_size = 14
+
+[node name="Heading" type="Label" parent="Card/Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 38
+
+[node name="Body" type="Label" parent="Card/Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 2
+
+[node name="Preview" type="SubViewportContainer" parent="Card/Stack"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 164)
+layout_mode = 2
+mouse_filter = 2
+stretch = true
+
+[node name="Viewport" type="SubViewport" parent="Card/Stack/Preview"]
+own_world_3d = true
+transparent_bg = true
+size = Vector2i(590, 164)
+render_target_update_mode = 2
+
+[node name="PreviewWorld" type="Node3D" parent="Card/Stack/Preview/Viewport"]
+unique_name_in_owner = true
+
+[node name="PreviewCamera" type="Camera3D" parent="Card/Stack/Preview/Viewport/PreviewWorld"]
+unique_name_in_owner = true
+position = Vector3(0, 0.64, 4.2)
+current = true
+fov = 22.0
+
+[node name="Key" type="DirectionalLight3D" parent="Card/Stack/Preview/Viewport/PreviewWorld"]
+rotation_degrees = Vector3(-31, -22, 0)
+light_color = Color(1, 0.9, 0.77, 1)
+light_energy = 1.2
+
+[node name="Fill" type="DirectionalLight3D" parent="Card/Stack/Preview/Viewport/PreviewWorld"]
+rotation_degrees = Vector3(-11, 55, 0)
+light_color = Color(0.69, 0.83, 1, 1)
+light_energy = 0.65
+
+[node name="Wallet" type="Label" parent="Card/Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.49, 1)
+autowrap_mode = 2
+
+[node name="Warning" type="Label" parent="Card/Stack"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.69, 0.44, 1)
+text = "The checkpoint could not be saved. You can keep playing this session."
+autowrap_mode = 2
+
+[node name="Content" type="VBoxContainer" parent="Card/Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Close" type="Button" parent="Card/Stack"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Back"
