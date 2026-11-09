@@ -16,6 +16,7 @@ var velocity := Vector2.ZERO
 var facing: float
 var health := MAX_HEALTH
 var grounded := true
+var guide_tier := 0
 
 
 func _init(side: int, unit_number: int, start: Vector2) -> void:
@@ -35,6 +36,7 @@ func snapshot() -> MatchUnit:
 	copy.facing = facing
 	copy.health = health
 	copy.grounded = grounded
+	copy.guide_tier = guide_tier
 	return copy
 
 

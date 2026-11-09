@@ -196,10 +196,11 @@ func _update_volume_label(value: float) -> void:
 	volume_label.text = "%d%%" % roundi(value)
 
 
-func _update_hud(status: String, power: float, angle: float) -> void:
+func _update_hud(status: String, power: float, angle: float, guide_dots: int) -> void:
 	%Status.text = status
 	%Power.value = power
 	%Angle.text = "AIM  %+.0f°" % angle
+	%LabGuide.text = "GUIDE  %d" % guide_dots
 
 
 func _update_match_hud(

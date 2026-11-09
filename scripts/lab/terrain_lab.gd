@@ -1,18 +1,14 @@
 class_name TerrainLab
 extends Node3D
 
-signal hud_changed(status: String, power: float, angle: float)
+signal hud_changed(status: String, power: float, angle: float, guide_dots: int)
 
-const MIN_ANGLE := -35.0
-const MAX_ANGLE := 75.0
-const AIM_SPEED := 48.0
-const CHARGE_TIME := 1.25
 const FLASH_DURATION := 0.23
 
 @onready var terrain_mesh: TerrainMesh = $TerrainMesh
 @onready var camera: Camera3D = $Camera3D
 @onready var target: MeshInstance3D = $Target
-@onready var aim_line: MeshInstance3D = $AimLine
+@onready var trajectory_guide: TrajectoryGuide = $TrajectoryGuide
 @onready var rocket_view: MeshInstance3D = $Rocket
 @onready var flash: MeshInstance3D = $Impact
 @onready var overlay: MeshInstance3D = $CollisionOutline
@@ -21,14 +17,16 @@ const FLASH_DURATION := 0.23
 
 var simulation := TerrainSimulation.new()
 var _angle := 0.0
-var _power := 0.0
-var _charging := false
+var _facing := 1.0
+var _guide_tier := 0
+var _aim_controls := AimControls.new()
 var _flash_time := 0.0
 var _status := "Ready. Press F for the first fixture shot."
 
 
 func _ready() -> void:
 	camera.look_at(Vector3(15.5, 6.8, 0.0))
+	get_window().focus_exited.connect(cancel_charge)
 	launch_sound.stream = ArtilleryAudio.tone(0.17, 330.0, 150.0)
 	impact_sound.stream = ArtilleryAudio.tone(0.28, 108.0, 32.0)
 	reset_lab()
@@ -37,6 +35,9 @@ func _ready() -> void:
 func reset_lab() -> void:
 	simulation.reset()
 	_angle = 0.0
+	_facing = 1.0
+	_guide_tier = 0
+	_aim_controls.cursor = Vector2.INF
 	cancel_charge()
 	_flash_time = 0.0
 	launch_sound.stop()
@@ -49,8 +50,18 @@ func reset_lab() -> void:
 
 
 func cancel_charge() -> void:
-	_charging = false
-	_power = 0.0
+	_aim_controls.cancel()
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion:
+		_aim_controls.cursor = event.position
+	elif _aim_controls.owns_release(event):
+		if event is InputEventMouseButton:
+			_aim_controls.cursor = event.position
+		_update_cursor_aim()
+		_fire(_manual_velocity())
+		get_viewport().set_input_as_handled()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -61,20 +72,26 @@ func _unhandled_input(event: InputEvent) -> void:
 		_refresh_overlay()
 	elif event.is_action_pressed("fixture_shot"):
 		_fire(TerrainSimulation.PRESET_VELOCITY)
+	elif event.is_action_pressed("cycle_guide_tier"):
+		_guide_tier = (_guide_tier + 1) % TrajectoryGuide.DOT_COUNTS.size()
+	elif event.is_action_pressed("pointer_fire") and event is InputEventMouseButton and simulation.rocket == null:
+		_aim_controls.cursor = event.position
+		_aim_controls.begin(&"pointer_fire")
 	elif event.is_action_pressed("fire") and simulation.rocket == null:
-		_charging = true
-	elif event.is_action_released("fire") and _charging:
-		var direction := Vector2.from_angle(deg_to_rad(_angle))
-		_fire(direction * lerpf(9.0, 26.0, _power))
+		_aim_controls.begin(&"fire")
 
 
 func _physics_process(delta: float) -> void:
 	var rocket_active := simulation.rocket != null
 	if not rocket_active:
 		var aim := Input.get_axis("aim_down", "aim_up")
-		_angle = clampf(_angle + aim * AIM_SPEED * delta, MIN_ANGLE, MAX_ANGLE)
-	if _charging:
-		_power = minf(_power + delta / CHARGE_TIME, 1.0)
+		if not is_zero_approx(aim):
+			_aim_controls.cursor = Vector2.INF
+			_angle = clampf(_angle + aim * AimControls.AIM_SPEED * delta,
+				AimControls.MIN_ANGLE, AimControls.MAX_ANGLE)
+		else:
+			_update_cursor_aim()
+	_aim_controls.tick()
 	simulation.step(delta)
 	if rocket_active and simulation.rocket == null:
 		_finish_shot()
@@ -84,6 +101,21 @@ func _physics_process(delta: float) -> void:
 	else:
 		flash.hide()
 	_refresh_view()
+
+
+func _update_cursor_aim() -> void:
+	var direction := _aim_controls.cursor_direction(camera, TerrainSimulation.MUZZLE)
+	if direction == Vector2.ZERO:
+		return
+	if not is_zero_approx(direction.x):
+		_facing = signf(direction.x)
+	_angle = AimControls.elevation(direction)
+
+
+func _manual_velocity() -> Vector2:
+	var direction := Vector2.from_angle(deg_to_rad(_angle))
+	direction.x *= _facing
+	return direction * lerpf(9.0, 26.0, _aim_controls.power())
 
 
 func _fire(velocity: Vector2) -> void:
@@ -112,15 +144,15 @@ func _finish_shot() -> void:
 
 func _refresh_view() -> void:
 	target.position = Vector3(simulation.target_feet.x, simulation.target_feet.y + 0.37, 0.0)
-	aim_line.rotation.z = deg_to_rad(_angle)
-	aim_line.position = Vector3(TerrainSimulation.MUZZLE.x, TerrainSimulation.MUZZLE.y, 0.0)
-	aim_line.position += Vector3(cos(aim_line.rotation.z), sin(aim_line.rotation.z), 0.0) * 0.85
-	aim_line.visible = simulation.rocket == null
 	rocket_view.visible = simulation.rocket != null
 	if simulation.rocket != null:
+		trajectory_guide.hide()
 		var point := simulation.rocket.position
 		rocket_view.position = Vector3(point.x, point.y, 0.0)
-	hud_changed.emit(_status, _power, _angle)
+	else:
+		var preview := ArtilleryShot.new(TerrainSimulation.MUZZLE, _manual_velocity())
+		trajectory_guide.preview(preview, simulation.terrain, PackedVector2Array(), _guide_tier)
+	hud_changed.emit(_status, _aim_controls.power(), _angle, TrajectoryGuide.DOT_COUNTS[_guide_tier])
 
 
 func _refresh_overlay() -> void:

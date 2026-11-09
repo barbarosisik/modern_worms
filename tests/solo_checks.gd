@@ -17,7 +17,7 @@ func _run() -> void:
 	for failure in _failures:
 		push_error(failure)
 	if _failures.is_empty():
-		print("PASS: isolated previews, legal CPU shots, blocked shots, pause, timeout, result and solo rematch")
+		print("PASS: isolated previews, seeded CPU hits and misses, boxed-in pass, pause, timeout, result and rematch")
 	quit(0 if _failures.is_empty() else 1)
 
 
@@ -37,24 +37,42 @@ func _check_planner() -> void:
 	game.pass_turn()
 	_resolve_turn(game)
 	var planner := ComputerOpponent.new()
+	planner.rng.seed = 1
 	planner.begin(game)
 	_finish_search(planner)
-	var plan := planner.best_plan
+	var plan := planner.chosen_plan
 	_expect(plan != null, "The computer finds an opening shot on the normal arena.")
 	if plan != null:
-		var preview := plan.position.state.snapshot_active_turn()
-		preview.active_unit().facing = plan.facing
-		preview.fire(plan.angle, plan.power, plan.weapon)
-		_resolve_turn(preview)
-		_expect(preview.team_health(0) < 200, "The selected shot damages Blue under the shared rules.")
-		_expect(preview.team_health(1) == 200, "The opening shot spares Orange.")
+		var preview := _resolve_release(plan)
+		_expect(preview.team_health(0) < 200 and preview.team_health(0) > 100,
+			"A seeded opening can damage Blue without taking half the team health.")
+		_expect(preview.team_health(1) == 200, "That opening shot spares Orange.")
+		var angle := plan.release_angle
+		var power := plan.release_power
+		_expect(planner.advance() and plan.release_angle == angle and plan.release_power == power,
+			"Advancing again cannot reroll the committed shot.")
 	_expect(game.team_health(0) == 200 and game.team_health(1) == 200,
 		"Planning a shot does not change either team.")
+
+	planner.rng.seed = 2
+	planner.begin(game)
+	_finish_search(planner)
+	plan = planner.chosen_plan
+	_expect(plan != null and _resolve_release(plan).team_health(0) == 200,
+		"A planned attack can miss after the release error.")
 
 	_seal_orange_unit(game)
 	planner.begin(game)
 	_finish_search(planner)
-	_expect(planner.best_plan == null, "A boxed-in unit has no beneficial shot.")
+	_expect(planner.chosen_plan == null, "A boxed-in unit has no beneficial shot.")
+
+
+func _resolve_release(plan: ComputerOpponent.Plan) -> MatchSimulation:
+	var preview := plan.position.state.snapshot_active_turn()
+	preview.active_unit().facing = plan.facing
+	preview.fire(plan.release_angle, plan.release_power, plan.weapon)
+	_resolve_turn(preview)
+	return preview
 
 
 func _check_solo_flow() -> void:
@@ -63,6 +81,7 @@ func _check_solo_flow() -> void:
 	root.add_child(app)
 	_button(app, "%SoloButton")
 	var arena := app.get_node("MatchArena") as MatchArena
+	arena._computer.rng.seed = 1
 	var game := arena.simulation
 	_expect(arena.computer_enabled and _visible(app, "%MatchHud"), "The solo button starts player vs CPU.")
 	_tap(KEY_P)
@@ -87,6 +106,7 @@ func _check_solo_flow() -> void:
 			break
 	_expect(power.value > 0.0 and "(CPU)" in (app.get_node("%TurnTitle") as Label).text,
 		"The computer's aim and charge are visible.")
+	_expect(not arena.trajectory_guide.visible, "The CPU has no dotted guide while aiming.")
 	_tap(KEY_ESCAPE)
 	var saved_time := game.remaining
 	var saved_power := power.value
@@ -119,6 +139,8 @@ func _check_solo_flow() -> void:
 	game.units[0].health = 1
 	game.units[0].feet = Vector2(25.0, 4.0)
 	game.units[2].health = 0
+	game.units[3].health = 0
+	arena._computer.rng.seed = 1
 	_tap(KEY_P)
 	for tick in range(630):
 		await physics_frame

@@ -27,6 +27,14 @@ fire={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"physical_keycode":32)]
 }
+pointer_fire={
+"deadzone": 0.2,
+"events": [Object(InputEventMouseButton,"button_index":1)]
+}
+cycle_guide_tier={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":71)]
+}
 fixture_shot={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"physical_keycode":70)]

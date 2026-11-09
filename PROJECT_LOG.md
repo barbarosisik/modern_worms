@@ -45,10 +45,19 @@
 - Godot 4.7.2 passed the solo, local match, and terrain lab headless checks. A Windows Forward+ run began at the main menu, observed the CPU walk and fire a grenade, reached an Orange victory through normal match rules, and started a fresh solo rematch.
 - The solo MVP uses one arena and one CPU difficulty. Prototype balance and reference measurement remain open.
 
+## 2026-11-09 | M3a mouse aim and CPU balance
+
+- Built `feature/mouse-aim-and-cpu-balance` from `9ca4110`. The cursor maps onto the combat plane. Hold the left mouse button or Space to charge and release to fire. Power ticks one point at a time from 0 to 100 and back. Keyboard aim and facing still work. Pause, focus loss, and turn expiry cancel the held shot.
+- Blue sees six fading dots based on the selected weapon, current charge, terrain, and wind. Orange plays without dots in both solo and local matches. The terrain lab can cycle through 6, 9, 12, 15, and 18 dots with G. Earned character upgrades are an M4 task.
+- The rule-based CPU considers short safe walks and fewer shot samples, scores three finalists, and can choose among near-equal options. It commits one angle and charge error per shot. The starting bounds scale from ±2° and ±3 percentage points at four world units to ±13° and ±32 points at eighteen. Near the top of the power meter, a late release loses power. The CPU rejects forecast allied eliminations and passes when it cannot find a useful attack.
+- On the stock arena after Blue passed, the previous CPU's opening removed 100 Blue HP. The revised CPU averaged 41.3 Blue HP damage across 24 seeded runs. Four shots did no Blue damage and one removed 100 HP. The boxed-in CPU passed on all 24 seeds, and the close one-on-one fixture with a one-HP target ended in an Orange win on all 24. These are fixture results. Solo playtesting will determine the final charge pace and difficulty.
+- Verified in Godot 4.7.2 on Windows with the terrain lab, match, solo, and aim headless suites. A seeded stock-arena run let Blue pass, observed the CPU walk and win, and started a clean rematch. In a Forward+ run at 1280 × 720, verified the six-dot match guide, the 18-dot lab tier, the power percentage, and GUI clicks during a match.
+
 ## Next session
 
 - [ ] On `research/reference-measurements`, confirm access to the Steam PC reference and record its build ID, scheme, map, and capture setup. Collect measurements for turn handoff, movement, shot arcs, and impacts before tuning M2. Save derived measurements, repeatability, and uncertainty with the project.
-- [ ] For M4, start `feature/pickups` from the integrated solo baseline. Playtest one visible pickup that makes movement a tactical choice before adding a shop.
+- [ ] Play a full solo match with the six-dot guide. Check whether the charge pace is readable, the CPU gives Blue time to recover from a miss, and late turns still progress after terrain is destroyed.
+- [ ] For M4, start `feature/pickups` from the integrated solo baseline. Place one visible pickup off the safe firing route and show collection in the HUD. Use that experiment to design the wallet, shop, and first earned guide upgrade.
 - [ ] Decide whether the turn clock alone supplies the desired movement constraint. Revisit the economy and original character direction once the match can be played end to end.
 
 For each new log entry, record the date, branch or commit, completed work, verification performed, open questions, and the next concrete action.
