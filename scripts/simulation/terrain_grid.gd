@@ -21,6 +21,12 @@ func _init() -> void:
 	_cells.resize(SIZE.x * SIZE.y)
 
 
+func snapshot() -> TerrainGrid:
+	var copy := TerrainGrid.new()
+	copy._cells = _cells.duplicate()
+	return copy
+
+
 func is_solid(cell: Vector2i) -> bool:
 	return _contains(cell) and _cells[cell.y * SIZE.x + cell.x] != 0
 

@@ -4,6 +4,8 @@ extends Node3D
 signal hud_changed(state: MatchSimulation, power: float, angle: float, weapon: ArtilleryShot.Weapon)
 signal match_finished(winner: int)
 
+enum ComputerPhase { WAITING, SEARCHING, MOVING, AIMING }
+
 const BLUE := Color(0.30, 0.76, 1.0)
 const ORANGE := Color(1.0, 0.54, 0.32)
 const ROCKET_COLOR := Color(1.0, 0.86, 0.48)
@@ -11,6 +13,7 @@ const GRENADE_COLOR := Color(0.65, 0.95, 0.46)
 const START_ANGLE := 26.0
 const CHARGE_SECONDS := 1.15
 const FLASH_DURATION := 0.24
+const COMPUTER_WAIT_TICKS := 12
 
 @onready var terrain_mesh: TerrainMesh = $TerrainMesh
 @onready var camera: Camera3D = $Camera3D
@@ -22,6 +25,7 @@ const FLASH_DURATION := 0.24
 @onready var _shot_material := projectile.mesh.surface_get_material(0) as StandardMaterial3D
 
 var simulation := MatchSimulation.new()
+var computer_enabled := false
 var _unit_views: Array[MeshInstance3D] = []
 var _unit_labels: Array[Label3D] = []
 var _angle := START_ANGLE
@@ -30,6 +34,9 @@ var _weapon := ArtilleryShot.Weapon.ROCKET
 var _charging := false
 var _jump_requested := false
 var _flash_time := 0.0
+var _computer := ComputerOpponent.new()
+var _computer_phase := ComputerPhase.WAITING
+var _computer_ticks := 0
 
 
 func _ready() -> void:
@@ -40,7 +47,8 @@ func _ready() -> void:
 		_create_unit_view(unit)
 
 
-func reset_match() -> void:
+func reset_match(against_computer: bool = false) -> void:
+	computer_enabled = against_computer
 	simulation.reset()
 	terrain_mesh.rebuild_all(simulation.terrain)
 	_reset_aim()
@@ -58,7 +66,7 @@ func cancel_input() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if simulation.phase != MatchSimulation.Phase.ACTIVE:
+	if simulation.phase != MatchSimulation.Phase.ACTIVE or is_computer_turn():
 		return
 	if event.is_action_pressed("unit_jump"):
 		_jump_requested = true
@@ -74,20 +82,38 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("fire"):
 		_charging = true
 	elif event.is_action_released("fire") and _charging:
-		if simulation.fire(_angle, _power, _weapon):
-			launch_sound.play()
-		cancel_input()
+		_fire_current_shot()
+
+
+func is_computer_turn() -> bool:
+	return computer_enabled and simulation.active_unit().team == 1
+
+
+func computer_status() -> String:
+	if not is_computer_turn() or simulation.phase != MatchSimulation.Phase.ACTIVE:
+		return ""
+	match _computer_phase:
+		ComputerPhase.MOVING:
+			return "Computer is moving."
+		ComputerPhase.AIMING:
+			return "Computer is aiming."
+		_:
+			return "Computer is choosing a shot."
 
 
 func _physics_process(delta: float) -> void:
 	var previous_turn := simulation.turn_number
 	var previous_phase := simulation.phase
+	var movement := 0.0
 	if previous_phase == MatchSimulation.Phase.ACTIVE:
-		var aim := Input.get_axis("aim_down", "aim_up")
-		_angle = clampf(_angle + aim * 48.0 * delta, -35.0, 80.0)
-		if _charging:
-			_power = minf(_power + delta / CHARGE_SECONDS, 1.0)
-	var movement := Input.get_axis("unit_left", "unit_right")
+		if is_computer_turn():
+			movement = _computer_movement(delta)
+		else:
+			var aim := Input.get_axis("aim_down", "aim_up")
+			_angle = clampf(_angle + aim * 48.0 * delta, -35.0, 80.0)
+			if _charging:
+				_power = minf(_power + delta / CHARGE_SECONDS, 1.0)
+			movement = Input.get_axis("unit_left", "unit_right")
 	simulation.step(delta, movement, _jump_requested)
 	_jump_requested = false
 	if simulation.turn_number != previous_turn:
@@ -109,6 +135,56 @@ func _reset_aim() -> void:
 	_angle = START_ANGLE
 	_weapon = ArtilleryShot.Weapon.ROCKET
 	cancel_input()
+	_computer.reset()
+	_computer_phase = ComputerPhase.WAITING
+	_computer_ticks = 0
+
+
+func _fire_current_shot() -> void:
+	if simulation.fire(_angle, _power, _weapon):
+		launch_sound.play()
+	cancel_input()
+
+
+func _computer_movement(delta: float) -> float:
+	_computer_ticks += 1
+	match _computer_phase:
+		ComputerPhase.WAITING:
+			if _computer_ticks >= COMPUTER_WAIT_TICKS:
+				_computer.begin(simulation)
+				_computer_phase = ComputerPhase.SEARCHING
+		ComputerPhase.SEARCHING:
+			if _computer.advance():
+				var plan := _computer.best_plan
+				if plan == null:
+					simulation.pass_turn()
+				elif is_zero_approx(plan.position.move_axis):
+					_begin_computer_aim()
+				else:
+					_computer_ticks = 0
+					_computer_phase = ComputerPhase.MOVING
+		ComputerPhase.MOVING:
+			if not simulation.active_unit().grounded:
+				simulation.pass_turn()
+			elif _computer_ticks <= ComputerOpponent.WALK_TICKS:
+				return _computer.best_plan.position.move_axis
+			elif _computer_ticks >= ComputerOpponent.WALK_TICKS + ComputerOpponent.STOP_TICKS:
+				_begin_computer_aim()
+		ComputerPhase.AIMING:
+			var plan := _computer.best_plan
+			_angle = move_toward(_angle, plan.angle, 76.0 * delta)
+			_power = move_toward(_power, plan.power, delta / CHARGE_SECONDS)
+			if _computer_ticks >= 18 and is_equal_approx(_angle, plan.angle) and is_equal_approx(_power, plan.power):
+				_fire_current_shot()
+	return 0.0
+
+
+func _begin_computer_aim() -> void:
+	var plan := _computer.best_plan
+	simulation.active_unit().facing = plan.facing
+	_weapon = plan.weapon
+	_computer_ticks = 0
+	_computer_phase = ComputerPhase.AIMING
 
 
 func _present_blast() -> void:

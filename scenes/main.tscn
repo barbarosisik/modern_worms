@@ -158,7 +158,7 @@ layout_mode = 2
 
 [node name="Kicker" type="Label" parent="Interface/Home/Card/Content"]
 layout_mode = 2
-text = "M2  /  LOCAL PLAY"
+text = "M3  /  SOLO & LOCAL PLAY"
 theme_override_colors/font_color = Color(0.47, 0.88, 0.9, 1)
 theme_override_font_sizes/font_size = 14
 
@@ -169,10 +169,16 @@ theme_override_font_sizes/font_size = 40
 
 [node name="Description" type="Label" parent="Interface/Home/Card/Content"]
 layout_mode = 2
-text = "Take turns controlling both teams on one keyboard, or practice shots in the terrain lab."
+text = "Challenge the computer, share a keyboard for a local match, or practice in the terrain lab."
 theme_override_colors/font_color = Color(0.67, 0.77, 0.83, 1)
 custom_minimum_size = Vector2(430, 0)
 autowrap_mode = 2
+
+[node name="SoloButton" type="Button" parent="Interface/Home/Card/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "Play vs Computer"
 
 [node name="MatchButton" type="Button" parent="Interface/Home/Card/Content"]
 unique_name_in_owner = true
@@ -556,7 +562,8 @@ layout_mode = 2
 [node name="Content" type="VBoxContainer" parent="Interface/ResultScreen/Card"]
 layout_mode = 2
 
-[node name="Kicker" type="Label" parent="Interface/ResultScreen/Card/Content"]
+[node name="ResultKicker" type="Label" parent="Interface/ResultScreen/Card/Content"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "LOCAL MATCH  /  RESULT"
 theme_override_colors/font_color = Color(0.47, 0.88, 0.9, 1)

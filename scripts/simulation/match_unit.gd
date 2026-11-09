@@ -29,6 +29,15 @@ func alive() -> bool:
 	return health > 0
 
 
+func snapshot() -> MatchUnit:
+	var copy := MatchUnit.new(team, number, feet)
+	copy.velocity = velocity
+	copy.facing = facing
+	copy.health = health
+	copy.grounded = grounded
+	return copy
+
+
 func center() -> Vector2:
 	return feet + Vector2(0.0, HEIGHT * 0.5)
 
