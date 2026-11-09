@@ -7,11 +7,11 @@ const STOP_TICKS := 9
 const MAX_FORECAST_SLICES := 105
 const MAX_FORECASTS_PER_TICK := 12
 const FORECAST_SLICE_USEC := 2300
-const FINALIST_COUNT := 6
+const FINALIST_COUNT := 3
 const MAX_FLIGHT_TICKS := 365
 const MAX_RESOLUTION_TICKS := 480
-const ANGLES := [26.0, 36.0, 16.0, 46.0, 6.0, 56.0, -8.0, 68.0, -22.0, 78.0]
-const POWERS := [0.86, 0.70, 1.0, 0.55, 0.95, 0.40, 0.25, 0.12]
+const ANGLES := [26.0, 36.0, 46.0, 16.0, 56.0, 6.0, -12.0, 72.0]
+const POWERS := [0.86, 1.0, 0.55, 0.32]
 
 
 class FiringPosition:
@@ -43,6 +43,9 @@ class Plan:
 	var weapon: ArtilleryShot.Weapon
 	var impact := Vector2.INF
 	var estimate := -INF
+	var score := -INF
+	var release_angle: float
+	var release_power: float
 
 	func _init(
 		site: FiringPosition, direction: float, elevation: float, charge: float, kind: ArtilleryShot.Weapon
@@ -54,7 +57,8 @@ class Plan:
 		weapon = kind
 
 
-var best_plan: Plan
+var chosen_plan: Plan
+var rng := RandomNumberGenerator.new()
 var _best_score := 0.0
 var _candidates: Array[Plan] = []
 var _finalists: Array[Plan] = []
@@ -64,7 +68,7 @@ var _final_cursor := 0
 
 
 func reset() -> void:
-	best_plan = null
+	chosen_plan = null
 	_best_score = 0.0
 	_candidates.clear()
 	_finalists.clear()
@@ -105,14 +109,31 @@ func advance() -> bool:
 	if _final_cursor < _finalists.size():
 		var candidate := _finalists[_final_cursor]
 		_final_cursor += 1
-		var score := _resolve_candidate(candidate)
-		if score > _best_score:
-			_best_score = score
-			best_plan = candidate
+		candidate.score = _resolve_candidate(candidate)
+		_best_score = maxf(_best_score, candidate.score)
 		return false
+	if _best_score > 0.0 and chosen_plan == null:
+		_commit_choice()
 	_candidates.clear()
 	_finalists.clear()
 	return true
+
+
+func _commit_choice() -> void:
+	var score_window := maxf(8.0, _best_score * 0.20)
+	var choices: Array[Plan] = []
+	for candidate in _finalists:
+		if candidate.score > 0.0 and candidate.score >= _best_score - score_window:
+			choices.append(candidate)
+	chosen_plan = choices[rng.randi_range(0, choices.size() - 1)]
+	var range_factor := _shot_range(chosen_plan)
+	# Commit once so the previewed ideal aim cannot correct an imperfect release.
+	chosen_plan.release_angle = clampf(
+		chosen_plan.angle + (rng.randf() - rng.randf()) * lerpf(2.0, 13.0, range_factor), -35.0, 80.0
+	)
+	var timed_power := chosen_plan.power + (rng.randf() - rng.randf()) * lerpf(0.03, 0.32, range_factor)
+	# Releasing late at the top is weaker, just as it is on the player's meter.
+	chosen_plan.release_power = minf(absf(timed_power), 2.0 - timed_power)
 
 
 func _project_position(state: MatchSimulation, axis: float) -> FiringPosition:
@@ -155,7 +176,12 @@ func _estimate(candidate: Plan) -> void:
 		if unit.feet.distance_to(candidate.impact) < MatchSimulation.crater_radius(candidate.weapon):
 			value += 12.0
 		score += value if unit.team != team else -1.5 * value
-	candidate.estimate = score
+	candidate.estimate = score - _shot_range(candidate) * 8.0
+
+
+func _shot_range(candidate: Plan) -> float:
+	var distance := candidate.position.state.active_unit().center().distance_to(candidate.impact)
+	return clampf(inverse_lerp(4.0, 18.0, distance), 0.0, 1.0)
 
 
 func _keep_finalist(candidate: Plan) -> void:
@@ -187,10 +213,16 @@ func _resolve_candidate(candidate: Plan) -> float:
 			break
 	if preview.phase == MatchSimulation.Phase.RESOLVING:
 		return -INF
+	for i in range(original.units.size()):
+		var ally := original.units[i]
+		if ally.team == team and ally.alive() and not preview.units[i].alive():
+			return -INF
 	if preview.phase == MatchSimulation.Phase.FINISHED:
 		return 200.0 if preview.winner == team else -200.0
 
-	var score := -2.0 if not is_zero_approx(candidate.position.move_axis) else 0.0
+	var score := -_shot_range(candidate) * 8.0
+	if not is_zero_approx(candidate.position.move_axis):
+		score -= 2.0
 	for i in range(original.units.size()):
 		var before := original.units[i]
 		if not before.alive():

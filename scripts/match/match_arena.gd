@@ -11,13 +11,12 @@ const ORANGE := Color(1.0, 0.54, 0.32)
 const ROCKET_COLOR := Color(1.0, 0.86, 0.48)
 const GRENADE_COLOR := Color(0.65, 0.95, 0.46)
 const START_ANGLE := 26.0
-const CHARGE_SECONDS := 1.15
 const FLASH_DURATION := 0.24
 const COMPUTER_WAIT_TICKS := 12
 
 @onready var terrain_mesh: TerrainMesh = $TerrainMesh
 @onready var camera: Camera3D = $Camera3D
-@onready var aim_line: MeshInstance3D = $AimLine
+@onready var trajectory_guide: TrajectoryGuide = $TrajectoryGuide
 @onready var projectile: MeshInstance3D = $Projectile
 @onready var flash: MeshInstance3D = $Impact
 @onready var launch_sound: AudioStreamPlayer = $LaunchSound
@@ -31,7 +30,7 @@ var _unit_labels: Array[Label3D] = []
 var _angle := START_ANGLE
 var _power := 0.0
 var _weapon := ArtilleryShot.Weapon.ROCKET
-var _charging := false
+var _aim_controls := AimControls.new()
 var _jump_requested := false
 var _flash_time := 0.0
 var _computer := ComputerOpponent.new()
@@ -41,6 +40,7 @@ var _computer_ticks := 0
 
 func _ready() -> void:
 	camera.look_at(Vector3(15.5, 5.5, 0.0))
+	get_window().focus_exited.connect(_cancel_human_input)
 	launch_sound.stream = ArtilleryAudio.tone(0.17, 330.0, 150.0)
 	impact_sound.stream = ArtilleryAudio.tone(0.28, 108.0, 32.0)
 	for unit in simulation.units:
@@ -51,6 +51,7 @@ func reset_match(against_computer: bool = false) -> void:
 	computer_enabled = against_computer
 	simulation.reset()
 	terrain_mesh.rebuild_all(simulation.terrain)
+	_aim_controls.cursor = Vector2.INF
 	_reset_aim()
 	_flash_time = 0.0
 	flash.hide()
@@ -61,8 +62,26 @@ func reset_match(against_computer: bool = false) -> void:
 
 func cancel_input() -> void:
 	_power = 0.0
-	_charging = false
+	_aim_controls.cancel()
 	_jump_requested = false
+
+
+func _cancel_human_input() -> void:
+	if not is_computer_turn():
+		cancel_input()
+
+
+func _input(event: InputEvent) -> void:
+	if simulation.phase != MatchSimulation.Phase.ACTIVE or is_computer_turn():
+		return
+	if event is InputEventMouseMotion:
+		_aim_controls.cursor = event.position
+	elif _aim_controls.owns_release(event):
+		if event is InputEventMouseButton:
+			_aim_controls.cursor = event.position
+		_update_cursor_aim()
+		_fire_current_shot()
+		get_viewport().set_input_as_handled()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -71,6 +90,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("unit_jump"):
 		_jump_requested = true
 	elif event.is_action_pressed("flip_facing"):
+		_aim_controls.cursor = Vector2.INF
 		simulation.active_unit().facing *= -1.0
 	elif event.is_action_pressed("select_rocket"):
 		_weapon = ArtilleryShot.Weapon.ROCKET
@@ -79,10 +99,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("pass_turn"):
 		simulation.pass_turn()
 		cancel_input()
+	elif event.is_action_pressed("pointer_fire") and event is InputEventMouseButton:
+		_aim_controls.cursor = event.position
+		_aim_controls.begin(&"pointer_fire")
 	elif event.is_action_pressed("fire"):
-		_charging = true
-	elif event.is_action_released("fire") and _charging:
-		_fire_current_shot()
+		_aim_controls.begin(&"fire")
 
 
 func is_computer_turn() -> bool:
@@ -110,9 +131,12 @@ func _physics_process(delta: float) -> void:
 			movement = _computer_movement(delta)
 		else:
 			var aim := Input.get_axis("aim_down", "aim_up")
-			_angle = clampf(_angle + aim * 48.0 * delta, -35.0, 80.0)
-			if _charging:
-				_power = minf(_power + delta / CHARGE_SECONDS, 1.0)
+			if not is_zero_approx(aim):
+				_aim_controls.cursor = Vector2.INF
+				_angle = clampf(_angle + aim * AimControls.AIM_SPEED * delta,
+					AimControls.MIN_ANGLE, AimControls.MAX_ANGLE)
+			_aim_controls.tick()
+			_power = _aim_controls.power()
 			movement = Input.get_axis("unit_left", "unit_right")
 	simulation.step(delta, movement, _jump_requested)
 	_jump_requested = false
@@ -120,6 +144,8 @@ func _physics_process(delta: float) -> void:
 		_reset_aim()
 	elif simulation.phase != MatchSimulation.Phase.ACTIVE:
 		cancel_input()
+	if simulation.phase == MatchSimulation.Phase.ACTIVE and not is_computer_turn():
+		_update_cursor_aim()
 	if simulation.last_blast != Vector2.INF:
 		_present_blast()
 	_flash_time = maxf(0.0, _flash_time - delta)
@@ -146,6 +172,16 @@ func _fire_current_shot() -> void:
 	cancel_input()
 
 
+func _update_cursor_aim() -> void:
+	var active := simulation.active_unit()
+	var direction := _aim_controls.cursor_direction(camera, active.center())
+	if direction == Vector2.ZERO:
+		return
+	if not is_zero_approx(direction.x):
+		active.facing = signf(direction.x)
+	_angle = AimControls.elevation(direction)
+
+
 func _computer_movement(delta: float) -> float:
 	_computer_ticks += 1
 	match _computer_phase:
@@ -155,7 +191,7 @@ func _computer_movement(delta: float) -> float:
 				_computer_phase = ComputerPhase.SEARCHING
 		ComputerPhase.SEARCHING:
 			if _computer.advance():
-				var plan := _computer.best_plan
+				var plan := _computer.chosen_plan
 				if plan == null:
 					simulation.pass_turn()
 				elif is_zero_approx(plan.position.move_axis):
@@ -167,20 +203,20 @@ func _computer_movement(delta: float) -> float:
 			if not simulation.active_unit().grounded:
 				simulation.pass_turn()
 			elif _computer_ticks <= ComputerOpponent.WALK_TICKS:
-				return _computer.best_plan.position.move_axis
+				return _computer.chosen_plan.position.move_axis
 			elif _computer_ticks >= ComputerOpponent.WALK_TICKS + ComputerOpponent.STOP_TICKS:
 				_begin_computer_aim()
 		ComputerPhase.AIMING:
-			var plan := _computer.best_plan
-			_angle = move_toward(_angle, plan.angle, 76.0 * delta)
-			_power = move_toward(_power, plan.power, delta / CHARGE_SECONDS)
-			if _computer_ticks >= 18 and is_equal_approx(_angle, plan.angle) and is_equal_approx(_power, plan.power):
+			var plan := _computer.chosen_plan
+			_angle = move_toward(_angle, plan.release_angle, 76.0 * delta)
+			_power = move_toward(_power, plan.release_power, delta * 0.87)
+			if _computer_ticks >= 18 and _angle == plan.release_angle and _power == plan.release_power:
 				_fire_current_shot()
 	return 0.0
 
 
 func _begin_computer_aim() -> void:
-	var plan := _computer.best_plan
+	var plan := _computer.chosen_plan
 	simulation.active_unit().facing = plan.facing
 	_weapon = plan.weapon
 	_computer_ticks = 0
@@ -233,12 +269,11 @@ func _refresh_view() -> void:
 			if can_aim and unit == active:
 				label.text = "▼\n" + label.text
 				label.position.y += 0.22
-	aim_line.visible = can_aim
-	if can_aim:
-		var aim := Vector2.from_angle(deg_to_rad(_angle))
-		aim.x *= active.facing
-		aim_line.rotation.z = aim.angle()
-		aim_line.position = _in_world(active.center() + aim * 1.14)
+	if can_aim and active.team == 0:
+		var preview := simulation.build_shot(_angle, _power, _weapon, active.facing)
+		trajectory_guide.preview(preview, simulation.terrain, simulation.living_centers(), active.guide_tier)
+	else:
+		trajectory_guide.hide()
 	projectile.visible = simulation.shot != null
 	if simulation.shot != null:
 		projectile.position = _in_world(simulation.shot.position)

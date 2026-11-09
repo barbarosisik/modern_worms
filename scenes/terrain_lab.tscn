@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/lab/terrain_lab.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/presentation/terrain_mesh.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/presentation/trajectory_guide.gd" id="3"]
 
 [sub_resource type="Environment" id="Environment"]
 background_mode = 1
@@ -28,14 +29,6 @@ roughness = 0.84
 material = SubResource("TargetMaterial")
 radius = 0.24
 height = 0.74
-
-[sub_resource type="StandardMaterial3D" id="AimMaterial"]
-shading_mode = 0
-albedo_color = Color(0.47, 0.88, 0.99, 1)
-
-[sub_resource type="BoxMesh" id="AimMesh"]
-material = SubResource("AimMaterial")
-size = Vector3(1.25, 0.026, 0.026)
 
 [sub_resource type="StandardMaterial3D" id="RocketMaterial"]
 shading_mode = 0
@@ -88,9 +81,9 @@ mesh = SubResource("LauncherMesh")
 [node name="Target" type="MeshInstance3D" parent="."]
 mesh = SubResource("TargetMesh")
 
-[node name="AimLine" type="MeshInstance3D" parent="."]
-mesh = SubResource("AimMesh")
-cast_shadow = 0
+[node name="TrajectoryGuide" type="Node3D" parent="."]
+visible = false
+script = ExtResource("3")
 
 [node name="Rocket" type="MeshInstance3D" parent="."]
 visible = false

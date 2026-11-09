@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/match/match_arena.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/presentation/terrain_mesh.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/presentation/trajectory_guide.gd" id="3"]
 
 [sub_resource type="Environment" id="Environment"]
 background_mode = 1
@@ -19,14 +20,6 @@ roughness = 0.65
 [sub_resource type="BoxMesh" id="WaterMesh"]
 material = SubResource("WaterMaterial")
 size = Vector3(37, 0.16, 3)
-
-[sub_resource type="StandardMaterial3D" id="AimMaterial"]
-shading_mode = 0
-albedo_color = Color(0.67, 0.93, 1, 1)
-
-[sub_resource type="BoxMesh" id="AimMesh"]
-material = SubResource("AimMaterial")
-size = Vector3(1.4, 0.04, 0.04)
 
 [sub_resource type="StandardMaterial3D" id="ShotMaterial"]
 shading_mode = 0
@@ -70,10 +63,9 @@ shadow_enabled = true
 position = Vector3(16, 0.72, 0)
 mesh = SubResource("WaterMesh")
 
-[node name="AimLine" type="MeshInstance3D" parent="."]
+[node name="TrajectoryGuide" type="Node3D" parent="."]
 visible = false
-mesh = SubResource("AimMesh")
-cast_shadow = 0
+script = ExtResource("3")
 
 [node name="Projectile" type="MeshInstance3D" parent="."]
 visible = false
