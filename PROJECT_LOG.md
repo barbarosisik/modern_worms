@@ -80,11 +80,17 @@
 - Updated the old plan to point to the new proposed delivery order. This publication changes documentation only; no gameplay fix, additional mission or visual overhaul is claimed. Validation is limited to document structure, references, task/dependency consistency and the three-file diff.
 - Gameplay implementation is paused pending the owner's revisions or explicit **go**. The documentation goes through the existing task-branch workflow into `development_branch`; `main` requires separate owner approval.
 
+## 2026-11-10 | Step One work in progress and handoff
+
+- The owner approved starting the cumulative first delivery. [STEP_ONE.md](STEP_ONE.md) prioritizes campaign navigation, a stylized battlefield built from premade assets, readable characters/weapons, camera and aim feedback, and a compact combat HUD. Signal Fires remains a working title. Wild Ones is the reference.
+- Started `feature/stylized-first-playable` from `5edc51f`. The baseline campaign check reached both existing missions. The reported block after the first mission remains unreproduced. Direct shelter map access and honest content labels are pending.
+- Imported selected Kenney and Quaternius models with sources in the [asset manifest](assets/ASSET_MANIFEST.md). Reworked the actor wrapper for imported humans, Scout and separate animation clips. Drafted arena dressing and earth/water shaders. Scene wiring, camera/HUD work and rendered verification remain pending.
+- Godot headless import and the existing campaign suite passed after the actor change. The branch is a handoff checkpoint. Finish and test it before integrating into `development_branch`.
+
 ## Next session
 
-- [ ] Read owner revisions to [WILD_ONES_MVP_PLAN.md](WILD_ONES_MVP_PLAN.md). Do not begin gameplay work until **go**.
-- [ ] After approval, follow section 19: preserve the save, reproduce campaign navigation and fix the verified blocker/discoverability issue.
-- [ ] Build the asset-based visual sample and terrain feasibility checkpoint before expanding the campaign. Review the actual playable appearance, control feel and weapon feedback.
-- [ ] Continue through the new plan's dependencies and acceptance gates, updating this log with actual implementation/test evidence. Do not revert to adding mission three as the first task.
+- [ ] Continue the existing feature branch using [STEP_ONE.md](STEP_ONE.md). Finish campaign access, wire the art into both battles, and complete the camera, aiming feedback and HUD.
+- [ ] Run the Godot behavior suites and a rendered Windows playthrough. Save evidence and update this log before integrating the feature into `development_branch`.
+- [ ] Follow the remaining priorities in [WILD_ONES_MVP_PLAN.md](WILD_ONES_MVP_PLAN.md), beginning with the four-weapon checkpoint. Expand the campaign after the visual and combat foundation is playable.
 
 For each new log entry, record the date, branch or commit, completed work, verification performed, open questions, and the next concrete action.
