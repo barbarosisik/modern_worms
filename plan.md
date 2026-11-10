@@ -1,5 +1,7 @@
 # Modern Worms development plan
 
+> **Direction update — 10 November 2026:** The owner confirmed **Wild Ones** as the primary reference and requested a comprehensive plan before further implementation. [Wild Ones MVP plan](WILD_ONES_MVP_PLAN.md) now defines the proposed delivery order, asset-based presentation, combat systems, three-mission MVP, acceptance checks and subsequent ten-level campaign. The milestone order below is historical. Gameplay work awaits owner revisions or **go**; publishing the new plan is not implementation approval.
+
 Updated 9 November 2026. Start with a Windows single-player artillery game built in Godot 4.7.2 Standard and typed GDScript. Show a real 3D battlefield from the side. Keep movement, aiming, shots, and terrain collision on a single vertical plane. The first playable milestone is one complete match against the computer, using original placeholder shapes until the setting and characters are chosen.
 
 [Mechanics research](MECHANICS_RESEARCH.md) records the reference behavior and the measurements to collect from the Steam PC version of *Worms W.M.D.*. The values in the first prototype below are test inputs. Replace or tune them against recorded gameplay once the reference build and scheme are pinned.

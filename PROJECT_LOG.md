@@ -70,11 +70,21 @@
 - A local checkpoint stores chapter progress, supplies, training, the kit, and outfits. Retry uses the saved loadout and a fresh battlefield. New Story starts progress and upgrades over with the selected outfits.
 - Verified both missions with real drag shots, the rescue before and after the lookout falls, Scout's turn, team and individual purchases, save and reload, retry, and the new-story reset. Checked the wardrobe, arena HUD, shelter, and roster in Windows Forward+.
 
+## 2026-11-10 | Wild Ones direction and proposed MVP overhaul
+
+- The owner confirmed **Wild Ones** as the intended reference and rejected the current visual quality and limited campaign experience. The current two-mission slice is a mechanics prototype, not the requested polished game.
+- Inspected `development_branch` at `bb82258d307a1ba78e3061298a27d458c448e971`. The campaign contains only First Signal and Ferry Landing and intentionally stops after two clears. A separate report of being unable to continue after the first mission is still un-reproduced; diagnosis is the first proposed implementation task.
+- Added [WILD_ONES_MVP_PLAN.md](WILD_ONES_MVP_PLAN.md) on `docs/wild-ones-mvp-plan`. It defines stable task IDs, dependencies, branches, asset selection and licensing, terrain/collision work, controls, eight tools, CPU tactics, ownership, saves/migration, three mission layouts, supporters, upgrades, UI/settings, validation and release criteria. The full ten-level campaign remains a separate explicitly tracked deliverable after the polished three-mission MVP.
+- Retained the owner's human lovers, rescue supporters, individual/team progression, 12-to-20-dot guide and pull-back aiming. Wild Ones is the primary gameplay/presentation reference; replacing the leads with animals has not been requested.
+- Proposed replacing the photographic background and geometric actors with a cohesive asset-based world. Asset packs remain candidates pending a real-camera visual and animation check; no assets were bought or imported in this documentation change.
+- Updated the old plan to point to the new proposed delivery order. This publication changes documentation only; no gameplay fix, additional mission or visual overhaul is claimed. Validation is limited to document structure, references, task/dependency consistency and the three-file diff.
+- Gameplay implementation is paused pending the owner's revisions or explicit **go**. The documentation goes through the existing task-branch workflow into `development_branch`; `main` requires separate owner approval.
+
 ## Next session
 
-- [ ] On `research/reference-measurements`, confirm access to the Steam PC reference and record its build ID, scheme, map, and capture setup. Collect measurements for turn handoff, movement, shot arcs, and impacts before tuning M2. Save derived measurements, repeatability, and uncertainty with the project.
-- [ ] Play a full solo match with pull-back aim and the 12-dot guide. Check the distance to full power, supply accessibility by foot and shot, and CPU behavior after the terrain breaks up.
-- [ ] Play both story missions from a fresh save. Tune early difficulty, the amount of loot collected on foot versus by shooting, and the feel and prices of the two upgrades.
-- [ ] Build *Through the Pines* next. Give Scout a distinct support action, add the next rescue, and test the larger turn queue before adding more stages. Extend toward ten levels once the first chapter is balanced.
+- [ ] Read owner revisions to [WILD_ONES_MVP_PLAN.md](WILD_ONES_MVP_PLAN.md). Do not begin gameplay work until **go**.
+- [ ] After approval, follow section 19: preserve the save, reproduce campaign navigation and fix the verified blocker/discoverability issue.
+- [ ] Build the asset-based visual sample and terrain feasibility checkpoint before expanding the campaign. Review the actual playable appearance, control feel and weapon feedback.
+- [ ] Continue through the new plan's dependencies and acceptance gates, updating this log with actual implementation/test evidence. Do not revert to adding mission three as the first task.
 
 For each new log entry, record the date, branch or commit, completed work, verification performed, open questions, and the next concrete action.
