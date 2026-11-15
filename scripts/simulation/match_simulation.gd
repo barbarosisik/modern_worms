@@ -39,9 +39,9 @@ func _init(build_arena: bool = true) -> void:
 		reset()
 
 
-func reset(mission: CampaignMission = null) -> void:
+func reset(mission: CampaignMission = null, map_index: int = 0) -> void:
 	if mission == null:
-		_set_up_skirmish()
+		_set_up_skirmish(map_index)
 		rescue_target = null
 		_wind_scale = 1.0
 	else:
@@ -70,7 +70,7 @@ func reset(mission: CampaignMission = null) -> void:
 	_quiet_time = 0.0
 
 
-func _set_up_skirmish() -> void:
+func _set_up_skirmish(map_index: int = 0) -> void:
 	terrain = TerrainGrid.new()
 	terrain.fill_rect(Rect2i(8, 10, 72, 22))
 	terrain.fill_rect(Rect2i(92, 10, 72, 10))
@@ -82,6 +82,26 @@ func _set_up_skirmish() -> void:
 		MatchUnit.new(0, 2, Vector2(8.5, 4.0)),
 		MatchUnit.new(1, 2, Vector2(23.5, 4.0)),
 	]
+
+	if map_index > 0:
+		terrain = TerrainGrid.new()
+		for column in range(8, 248):
+			var height := 32
+			if map_index == 1:
+				height = 26 + roundi(18.0 * sin(float(column - 8) / 240.0 * PI))
+				if column in range(120, 136):
+					continue
+			else:
+				if column in range(82, 96) or column in range(160, 174):
+					continue
+				height = 32 if column < 82 or column >= 174 else 22
+			terrain.fill_rect(Rect2i(column, 7, 1, height - 7))
+		for unit in units:
+			var x := floori(unit.feet.x / TerrainGrid.CELL_SIZE)
+			for row in range(127, 0, -1):
+				if terrain.is_solid(Vector2i(x, row)):
+					unit.feet.y = (row + 1) * TerrainGrid.CELL_SIZE
+					break
 
 
 func active_unit() -> MatchUnit:

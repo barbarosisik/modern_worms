@@ -37,7 +37,7 @@ func _ready() -> void:
 
 func open_wardrobe(run: CampaignRun) -> void:
 	_prepare("SIGNAL FIRES  /  NEW STORY", "Meet the rescuers")
-	_body.text = "Mara and Eli return to their flooded valley together. Choose their jackets before the first mission. A new story starts with fresh progress and skills."
+	_body.text = "Mara and Eli return to their flooded valley together. Mara is a cat and Eli is a dog. Choose their coat styles before the first mission. A new story starts with fresh progress and skills."
 	_preview.show()
 	_selected = run.outfits.duplicate()
 	var row := HBoxContainer.new()
@@ -63,7 +63,7 @@ func open_wardrobe(run: CampaignRun) -> void:
 
 
 func open_map(run: CampaignRun) -> void:
-	var heading: String = "Chapter cleared" if run.finished() else CampaignRun.MISSIONS[run.cleared]
+	var heading: String = "Both available missions cleared" if run.finished() else CampaignRun.MISSIONS[run.cleared]
 	_prepare("SIGNAL FIRES  /  MAP TABLE", heading)
 	var route := PackedStringArray()
 	for i in range(CampaignRun.MISSIONS.size()):
@@ -71,7 +71,7 @@ func open_map(run: CampaignRun) -> void:
 		route.append("%02d   %s   ·   %s" % [i + 1, CampaignRun.MISSIONS[i], status])
 	_body.text = "\n".join(route)
 	if run.finished():
-		_body.text += "\n\nThe ferry is secure and the shelter has a route across the valley. The next chapter leads into the pines."
+		_body.text += "\n\nThe ferry is secure and the shelter has a route across the valley. You have completed the two missions in this build. Through the Pines is planned, but is not playable yet. Try a skirmish from the main menu."
 		_back.grab_focus()
 		return
 	_body.text += "\n\n" + CampaignRun.BRIEFINGS[run.cleared]

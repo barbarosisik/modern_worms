@@ -45,6 +45,7 @@ var _checkpoint_failed := false
 
 func _ready() -> void:
 	get_window().title = "Signal Fires"
+	_install_match_actions()
 	start_button.pressed.connect(_start_lab)
 	match_button.pressed.connect(_start_match)
 	solo_button.pressed.connect(_start_solo)
@@ -192,7 +193,7 @@ func _refresh_shelter_hud(station: int) -> void:
 		campaign.cleared, CampaignRun.MISSIONS.size(), campaign.supplies
 	]
 	%ShelterStory.text = (
-		"Mara: The ferry's ours. Tomorrow we follow the relay into the pines." if campaign.finished()
+		"Both available missions complete. More chapters are planned." if campaign.finished()
 		else "Eli: Scout's safe. Let's get our gear before we take the ferry."
 	)
 	var action := %StationAction as Button
@@ -403,3 +404,31 @@ func _update_mission_hud(state: MatchSimulation) -> void:
 		if unit.team == 0 and unit.alive():
 			names.append("[%s]" % unit.display_name if unit == state.active_unit() else unit.display_name)
 	%PlayerQueue.text = "TURN ORDER   " + "  ›  ".join(names)
+
+
+func _install_match_actions() -> void:
+	var maps := OptionButton.new()
+	maps.name = "SkirmishMap"
+	maps.tooltip_text = "Choose terrain for solo and local skirmishes. Story maps are fixed."
+	for title in ["Skirmish map: River Outposts", "Skirmish map: Split Ridgeline", "Skirmish map: Broken Causeway"]:
+		maps.add_item(title)
+	solo_button.get_parent().add_child(maps)
+	solo_button.get_parent().move_child(maps, solo_button.get_index())
+	maps.item_selected.connect(func(index: int) -> void: arena.skirmish_map = index)
+	var map_button := Button.new()
+	map_button.name = "MapShortcut"
+	map_button.text = "Mission map"
+	map_button.position = Vector2(26, 100)
+	map_button.custom_minimum_size = Vector2(180, 44)
+	shelter_hud.add_child(map_button)
+	map_button.pressed.connect(func() -> void: _open_shelter_station(CampaignShelter.Station.MAP))
+	var weapons := HBoxContainer.new()
+	weapons.position = Vector2(26, 110)
+	match_hud.add_child(weapons)
+	for i in range(2):
+		var button := Button.new()
+		button.text = ["1 - Rocket", "2 - Grenade"][i]
+		button.custom_minimum_size = Vector2(140, 42)
+		button.tooltip_text = ["Explodes on contact. Direct shots and terrain carving.", "Bounces before exploding. Lob it behind cover."][i]
+		weapons.add_child(button)
+		button.pressed.connect(arena.select_weapon.bind(i))

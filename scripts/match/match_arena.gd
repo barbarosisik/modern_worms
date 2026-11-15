@@ -25,8 +25,13 @@ const COMPUTER_WAIT_TICKS := 12
 @onready var supply_sound: AudioStreamPlayer = $SupplySound
 @onready var _shot_material := projectile.mesh.surface_get_material(0) as StandardMaterial3D
 
+var _rocket_view: Node3D
+var _grenade_view: Node3D
+var battlefield := Battlefield.new()
+var _home_camera := Transform3D.IDENTITY
 var simulation := MatchSimulation.new()
 var computer_enabled := false
+var skirmish_map := 0
 var _unit_views: Array[Node3D] = []
 var _unit_labels: Array[Label3D] = []
 var _rescue_view: CampaignActor
@@ -44,6 +49,24 @@ var _computer_ticks := 0
 
 
 func _ready() -> void:
+	add_child(battlefield)
+	var feedback_layer := CanvasLayer.new()
+	add_child(feedback_layer)
+	var feedback := preload("res://scripts/presentation/drag_feedback.gd").new()
+	feedback.arena = self
+	feedback_layer.add_child(feedback)
+	projectile.mesh = null
+	_rocket_view = preload("res://assets/kenney/weapons/bullet-foam-tip.glb").instantiate()
+	projectile.add_child(_rocket_view)
+	_rocket_view.scale = Vector3.ONE * 0.8
+	_grenade_view = preload("res://assets/kenney/weapons/grenade-a.glb").instantiate()
+	projectile.add_child(_grenade_view)
+	_grenade_view.scale = Vector3.ONE * 0.7
+	var crate := preload("res://assets/kenney/weapons/crate-small.glb").instantiate() as Node3D
+	supply_view.get_node("Crate").hide()
+	supply_view.add_child(crate)
+	crate.scale = Vector3.ONE * 0.7
+	crate.position.y = -0.2
 	camera.look_at(Vector3(15.5, 5.5, 0.0))
 	get_window().focus_exited.connect(_cancel_human_input)
 	launch_sound.stream = ArtilleryAudio.tone(0.17, 330.0, 150.0)
@@ -60,7 +83,7 @@ func _ready() -> void:
 
 func reset_match(against_computer: bool = false, mission: CampaignMission = null) -> void:
 	computer_enabled = against_computer
-	simulation.reset(mission)
+	simulation.reset(mission, skirmish_map)
 	_computer.error_scale = mission.cpu_error_scale if mission != null else 1.0
 	if mission != null and mission.index == 0:
 		camera.position = Vector3(14.4, 8.6, 32.5)
@@ -68,6 +91,9 @@ func reset_match(against_computer: bool = false, mission: CampaignMission = null
 	else:
 		camera.position = Vector3(18.5, 11.0, 44.0)
 		camera.look_at(Vector3(15.5, 5.5, 0.0))
+	camera.fov = 27.0
+	_home_camera = camera.transform
+	battlefield.dress(simulation.terrain, mission.index if mission != null else 1)
 	terrain_mesh.rebuild_all(simulation.terrain)
 	_rebuild_unit_views()
 	_reset_aim()
@@ -94,6 +120,10 @@ func _cancel_human_input() -> void:
 func _input(event: InputEvent) -> void:
 	if simulation.phase != MatchSimulation.Phase.ACTIVE or is_computer_turn():
 		return
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+		cancel_input()
+		get_viewport().set_input_as_handled()
+		return
 	if event is InputEventMouseMotion and _aim_controls.is_dragging():
 		_aim_controls.update_drag(camera, event.position)
 	elif _aim_controls.owns_release(event):
@@ -111,6 +141,13 @@ func _input(event: InputEvent) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if simulation.phase != MatchSimulation.Phase.ACTIVE or is_computer_turn():
 		return
+	if event is InputEventMouseButton and event.pressed and not _aim_controls.is_dragging():
+		if event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+			camera.fov = clampf(camera.fov + (-2.0 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 2.0), 18.0, 40.0)
+			return
+	if event is InputEventKey and event.pressed and event.keycode == KEY_HOME and not _aim_controls.is_dragging():
+		camera.transform = _home_camera
+		camera.fov = 27.0
 	if event.is_action_pressed("unit_jump"):
 		_jump_requested = true
 	elif event.is_action_pressed("flip_facing"):
@@ -200,6 +237,7 @@ func _reset_aim() -> void:
 
 func _fire_current_shot() -> void:
 	if simulation.fire(_angle, _power, _weapon):
+		(_unit_views[simulation.turn_index] as CampaignActor).fire_animation()
 		launch_sound.play()
 	cancel_input()
 
@@ -258,6 +296,7 @@ func _begin_computer_aim() -> void:
 func _present_blast() -> void:
 	for chunk in simulation.dirty_chunks:
 		terrain_mesh.rebuild_chunk(simulation.terrain, chunk)
+	battlefield.update_support(simulation.terrain)
 	flash.position = _in_world(simulation.last_blast)
 	_flash_time = FLASH_DURATION
 	impact_sound.play()
@@ -274,9 +313,8 @@ func _rebuild_unit_views() -> void:
 	_unit_labels.clear()
 	for unit in simulation.units:
 		var team_color := BLUE if unit.team == 0 else ORANGE
-		var body := _create_capsule(team_color) if unit.display_name.is_empty() else (
-			CampaignActor.new(unit.display_name, unit.outfit) as Node3D
-		)
+		var identity := unit.display_name if not unit.display_name.is_empty() else (("Mara" if unit.number == 1 else "Eli") if unit.team == 0 else "Raider")
+		var body := CampaignActor.new(identity, unit.outfit)
 		add_child(body)
 		_unit_views.append(body)
 		var label := _create_label(team_color.lightened(0.24))
@@ -319,7 +357,8 @@ func _refresh_view(delta: float = 0.0) -> void:
 		if body.visible:
 			if body is CampaignActor:
 				body.position = _in_world(unit.feet)
-				body.pose(unit.facing, unit.velocity.x, delta)
+				body.pose(unit.facing, unit.velocity.x, delta, unit.grounded)
+				body.aim(unit.facing, _angle, _weapon, can_aim and unit == active)
 			else:
 				body.position = _in_world(unit.center())
 			label.position = Vector3(unit.feet.x, unit.feet.y + 1.24, 0.58)
@@ -345,9 +384,18 @@ func _refresh_view(delta: float = 0.0) -> void:
 	projectile.visible = simulation.shot != null
 	if simulation.shot != null:
 		projectile.position = _in_world(simulation.shot.position)
-		_shot_material.albedo_color = ROCKET_COLOR if simulation.shot.weapon == ArtilleryShot.Weapon.ROCKET else GRENADE_COLOR
+		_rocket_view.visible = simulation.shot.weapon == ArtilleryShot.Weapon.ROCKET
+		_grenade_view.visible = not _rocket_view.visible
+		projectile.rotation.z = simulation.shot.velocity.angle()
+		_grenade_view.rotation.z = simulation.shot.age * 5.0
 	hud_changed.emit(simulation, _power, _angle, _weapon)
 
 
 func _in_world(point: Vector2) -> Vector3:
 	return Vector3(point.x, point.y, 0.0)
+
+
+func select_weapon(weapon: ArtilleryShot.Weapon) -> void:
+	if simulation.phase == MatchSimulation.Phase.ACTIVE and not is_computer_turn():
+		cancel_input()
+		_weapon = weapon

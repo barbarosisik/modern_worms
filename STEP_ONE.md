@@ -33,3 +33,27 @@ This branch is a work in progress based on `development_branch` at `5edc51f`. Co
 2. Review the revised look and controls in playable matches. Update this file and `PROJECT_LOG.md` with concrete results and limitations.
 3. Integrate the tested feature through a PR to `development_branch`. Keep release to `main` as a separate owner approval.
 4. Resume [the detailed MVP plan](WILD_ONES_MVP_PLAN.md). Prioritize four polished weapons with shotgun and mine, then the larger arsenal and CPU tactics. Build Through the Pines with a second rescue and Scout's support action as part of the three-mission MVP. Continue toward ten missions after the three-mission loop passes review.
+
+
+## 15 November continuation: animal cast and playable battle integration
+
+Owner decision: **make the whole cast animals**. This supersedes human-lead visual requirements in this file and earlier plans. Mara is currently a cat, Eli and Scout dogs, and the salvage opponents wolves. Names, relationship, roster order and save schema remain compatible. Species choices are an initial implementation, not a locked final roster.
+
+Delivered in this continuation:
+- Battlefield scenery and water are wired into match reset. Battle uses a color environment instead of the photo; the photo remains in home/shelter.
+- Earth shader, grass surface, imported scenery, terrain-support checks after blasts.
+- Imported animated animal cast throughout wardrobe, shelter and matches; equipped weapon models, recoil, projectile models, supply crate model.
+- Mission-map shortcut in shelter and explicit two-mission completion message.
+- Right-click cancels a pull without firing on later release; visible pull tether and power text; mouse-wheel zoom and Home framing reset; camera zoom freezes while dragging.
+- Clickable rocket/grenade buttons with tooltips. Their two existing behaviors remain unchanged.
+- Three selectable skirmish terrains: River Outposts, Split Ridgeline, Broken Causeway. Campaign terrain remains fixed.
+- Seven passing headless suites, including new skirmish terrain checks and expanded input/navigation checks. Forward+ captures reviewed for battle and wardrobe at 1280x720. No claim of full manual balancing or 1920x1080 review.
+
+### Next delivery, in priority order
+1. Four tactically distinct weapons: retain rocket/grenade, add short-range shotgun and persistent proximity mine. Define damage, falloff, terrain effect, ammo, friendly fire, turn resolution and preview rules before coding. Test cover occlusion, close shots, mine placement/trigger ownership, and CPU evaluation.
+2. Animal identity: species-specific support abilities with visible cooldown/use limits; model attachment and turn portraits; retain visual customization separately from stats. Avoid automatic accuracy bonuses for CPU. Ask the owner about preferred personality/style if needed.
+3. Third mission, Through the Pines: authored terrain with alternative routes, a new animal rescue, the rescued ally joining turn order, clear map unlock and compatible save migration. Do not imply an unbuilt level is available.
+4. Combat readability: short projectile trails, damage feedback, impact sound/VFX, selected-weapon state and ammo display, camera framing across resolutions, clearer team markers on animals.
+5. Broader progression: team versus individual upgrades, enemy archetypes, and three-mission tuning before expanding to ten. Skills reset on a new story; cosmetics remain selectable.
+
+Still unfinished from the initial slice: projectile trails, final UI/art polish, complete rendered playthrough at both target resolutions, manual fun/balance review, and development integration. This is improved playable work, not completion of the larger MVP.

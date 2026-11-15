@@ -116,7 +116,7 @@ func _check_campaign_flow() -> void:
 	_expect(run.cleared == 1 and run.field_kits and run.guide_tiers[1] == 1 and run.outfits[0] == 2,
 		"Reopening the game restores the checkpoint, purchases, and outfit.")
 	_press(app, "ContinueStory")
-	_tap(KEY_E)
+	_press(app, "MapShortcut")
 	_press(app, "StartMission")
 	arena = app.get_node("MatchArena") as MatchArena
 	game = arena.simulation

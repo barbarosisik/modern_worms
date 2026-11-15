@@ -612,7 +612,7 @@ show_percentage = true
 
 [node name="Controls" type="Label" parent="Interface/MatchHud/Readout/Content"]
 layout_mode = 2
-text = "A D Move   ·   W Jump   ·   Hold LMB, pull back and release   ·   1 Rocket   ·   2 Grenade   ·   P Pass"
+text = "A/D Move · W Jump · Drag LMB Fire · RMB Cancel · Wheel Zoom · Home Reset · 1/2 Weapon · P Pass"
 theme_override_colors/font_color = Color(0.67, 0.77, 0.83, 1)
 theme_override_font_sizes/font_size = 16
 

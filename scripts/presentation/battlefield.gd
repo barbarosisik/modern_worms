@@ -11,12 +11,12 @@ func _ready() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 417
 	for i in range(10):
-		var rock := add_asset("rock_largeA", Vector3(-22.0 + i * 9.0, -3.0, -35.0), Vector3(12.0, rng.randf_range(13.0, 23.0), 9.0))
+		var rock := add_asset("rock_largeA", Vector3(-70.0 + i * 20.0, -4.0, -55.0), Vector3(65.0, rng.randf_range(65.0, 110.0), 40.0))
 		_tint(rock, Color("#729caa"))
 	for layer in range(2):
 		for i in range(25):
 			var tree := add_asset("tree_pineTallA" if i % 2 == 0 else "tree_pineRoundA",
-				Vector3(-14.0 + i * 2.6, -2.0, -17.0 + layer * 7.0), Vector3.ONE * rng.randf_range(2.3, 4.0))
+				Vector3(-14.0 + i * 2.6, 0.0, -21.0 + layer * 7.0), Vector3.ONE * rng.randf_range(3.8, 6.0))
 			_tint(tree, Color("#547c78") if layer == 0 else Color("#386d60"))
 	var water := MeshInstance3D.new()
 	var plane := PlaneMesh.new()
@@ -81,6 +81,7 @@ func _tint(node: Node3D, color: Color) -> void:
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
 	material.roughness = 1.0
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	for mesh in node.find_children("*", "MeshInstance3D", true, false):
 		mesh.material_override = material
 		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

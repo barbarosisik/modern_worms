@@ -2,16 +2,15 @@ class_name TerrainMesh
 extends Node3D
 
 const HALF_DEPTH := 0.5
-const FACE_COLOR := Color(0.26, 0.48, 0.48)
-const EDGE_COLOR := Color(0.48, 0.72, 0.61)
+const FACE_COLOR := Color(0, 0, 0)
+const EDGE_COLOR := Color(0, 0, 0)
 
 var _chunks: Dictionary[Vector2i, MeshInstance3D] = {}
-var _material := StandardMaterial3D.new()
+var _material := ShaderMaterial.new()
 
 
 func _ready() -> void:
-	_material.vertex_color_use_as_albedo = true
-	_material.roughness = 0.91
+	_material.shader = preload("res://scripts/presentation/earth.gdshader")
 
 
 func rebuild_all(terrain: TerrainGrid) -> void:
@@ -54,14 +53,15 @@ func _add_cell(surface: SurfaceTool, terrain: TerrainGrid, cell: Vector2i) -> vo
 	var back_tl := front_tl - depth
 	var back_tr := front_tr - depth
 
-	_quad(surface, front_bl, front_tl, front_tr, front_br, Vector3.BACK, FACE_COLOR)
+	var top_color := Color(0, 1, 0) if not terrain.is_solid(cell + Vector2i(0, 1)) else FACE_COLOR
+	_quad(surface, front_bl, front_tl, front_tr, front_br, Vector3.BACK, top_color)
 	_quad(surface, back_br, back_tr, back_tl, back_bl, Vector3.FORWARD, FACE_COLOR)
 	if not terrain.is_solid(cell + Vector2i.LEFT):
 		_quad(surface, back_bl, back_tl, front_tl, front_bl, Vector3.LEFT, EDGE_COLOR)
 	if not terrain.is_solid(cell + Vector2i.RIGHT):
 		_quad(surface, front_br, front_tr, back_tr, back_br, Vector3.RIGHT, EDGE_COLOR)
 	if not terrain.is_solid(cell + Vector2i.DOWN):
-		_quad(surface, front_tl, back_tl, back_tr, front_tr, Vector3.UP, EDGE_COLOR)
+		_quad(surface, front_tl, back_tl, back_tr, front_tr, Vector3.UP, Color(0, 1, 0))
 	if not terrain.is_solid(cell + Vector2i.UP):
 		_quad(surface, back_bl, front_bl, front_br, back_br, Vector3.DOWN, EDGE_COLOR)
 

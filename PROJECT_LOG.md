@@ -94,3 +94,16 @@
 - [ ] Follow the remaining priorities in [WILD_ONES_MVP_PLAN.md](WILD_ONES_MVP_PLAN.md), beginning with the four-weapon checkpoint. Expand the campaign after the visual and combat foundation is playable.
 
 For each new log entry, record the date, branch or commit, completed work, verification performed, open questions, and the next concrete action.
+
+
+## 2026-11-15 — animal cast, integrated battlefield and skirmish variety
+
+Resumed `feature/stylized-first-playable` from published checkpoint `523888c`. Verified the staged checkpoint tree matched the fetched remote before aligning the local branch; retained new working edits. No main changes.
+
+Owner explicitly selected an all-animal cast. Imported licensed Quaternius cat/wolf models alongside the existing dog. Added animation selection, idle-pose sizing and per-surface coat tinting; preserved names, story relationship, save version, roster order and progression. Corrected the dog's initial floating/undersized placement by measuring its animated idle pose in Forward+ and storing those bounds for consistent headless rendering behavior.
+
+Connected forest/lake scene, soil/grass shader and destruction-aware scenery; equipped guns, projectile meshes and imported supply crate. Added right-click cancellation, mouse-wheel zoom/Home reset, drag-camera lock, pull tether, clickable weapon buttons, direct shelter map access and truthful two-mission end message. Added three selectable skirmish layouts with supported unit spawns. No extra weapon behavior or species skill is claimed yet.
+
+Validation: terrain_lab, match, solo, aim, supply and campaign suites passed after integration. Expanded aim checks cover cancellation/zoom locking/reset; campaign reopening uses the new MapShortcut. New skirmish_maps suite passes for all three layouts, supplies and CPU plans. Windows Vulkan Forward+ wardrobe and battle screenshots reviewed at 1280x720. Rendered review found/fixed dog placement and excessive background/water contrast. Temporary screenshots/source archive live only under ignored `.godot`. Original user save paths were not overwritten by tests.
+
+Next: four-weapon behavior slice (shotgun/mine), animal support abilities, third story mission and rescue, combat feedback and full manual resolution/balance review. Exact priorities and acceptance scope in STEP_ONE.md. Full eight-tool/ten-level vision is unfinished.

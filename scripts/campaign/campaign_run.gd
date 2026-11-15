@@ -11,7 +11,7 @@ const BRIEFINGS := [
 	"Scout leads Mara and Eli to the old ferry landing. The salvage crew has cut the crossing. If the three can clear the dock, the stranded families will have a way out.\n\nEli: “Remember the summer we swam across?”\nMara: “I remember you promising we'd take the ferry next time.”",
 ]
 const ROSTER := ["Mara", "Eli", "Scout"]
-const OUTFITS := ["Harbor blue", "Pine green", "Signal red"]
+const OUTFITS := ["Natural coat", "Forest tint", "Warm tint"]
 const OUTFIT_COLORS := [Color("#267fa3"), Color("#42785e"), Color("#bf513f")]
 const CLEAR_REWARD := 2
 const UPGRADE_COST := 1

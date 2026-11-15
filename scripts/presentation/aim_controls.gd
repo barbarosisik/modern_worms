@@ -78,3 +78,7 @@ static func _point_on_plane(camera: Camera3D, screen_point: Vector2) -> Vector2:
 
 static func elevation(direction: Vector2) -> float:
 	return clampf(rad_to_deg(atan2(direction.y, absf(direction.x))), MIN_ANGLE, MAX_ANGLE)
+
+
+func drag_anchor() -> Vector2:
+	return _drag_start

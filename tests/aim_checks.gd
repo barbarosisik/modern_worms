@@ -72,6 +72,25 @@ func _check_controls() -> void:
 
 	_mouse_button(point, true)
 	_mouse_motion(strong_pull)
+	var old_fov := arena.camera.fov
+	var wheel := InputEventMouseButton.new()
+	wheel.button_index = MOUSE_BUTTON_WHEEL_UP
+	wheel.pressed = true
+	_send(wheel.duplicate())
+	_expect(arena.camera.fov == old_fov, "Camera zoom freezes during a drag.")
+	var cancel := InputEventMouseButton.new()
+	cancel.button_index = MOUSE_BUTTON_RIGHT
+	cancel.pressed = true
+	_send(cancel)
+	_mouse_button(strong_pull, false)
+	_expect(game.shot == null and not arena._aim_controls.is_dragging(), "Right-click cancels without firing on release.")
+	_send(wheel.duplicate())
+	_expect(arena.camera.fov < old_fov, "Wheel zoom works outside a drag.")
+	_tap(KEY_HOME)
+	_expect(arena.camera.fov == 27.0, "Home restores the battle camera.")
+
+	_mouse_button(point, true)
+	_mouse_motion(strong_pull)
 	await physics_frame
 	await physics_frame
 	_expect(power.value == 1.0, "Pulling far enough reaches full power.")
