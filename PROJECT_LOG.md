@@ -107,3 +107,31 @@ Connected forest/lake scene, soil/grass shader and destruction-aware scenery; eq
 Validation: terrain_lab, match, solo, aim, supply and campaign suites passed after integration. Expanded aim checks cover cancellation/zoom locking/reset; campaign reopening uses the new MapShortcut. New skirmish_maps suite passes for all three layouts, supplies and CPU plans. Windows Vulkan Forward+ wardrobe and battle screenshots reviewed at 1280x720. Rendered review found/fixed dog placement and excessive background/water contrast. Temporary screenshots/source archive live only under ignored `.godot`. Original user save paths were not overwritten by tests.
 
 Next: four-weapon behavior slice (shotgun/mine), animal support abilities, third story mission and rescue, combat feedback and full manual resolution/balance review. Exact priorities and acceptance scope in STEP_ONE.md. Full eight-tool/ten-level vision is unfinished.
+
+
+## 2026-11-15 — surface appearance test handoff
+
+Owner requested less pointed geometry and believable-looking surfaces, with a playtest before more feature work. Replaced the battle's pointed pine silhouettes with imported broad-canopy oak models; removed oversized faceted mountain silhouettes. Added CC0 ambientCG soil/moss color and normal maps to terrain, including newly exposed crater faces. Physics occupancy and gameplay remain unchanged. Added imported-canopy normal smoothing. Source details are in assets/ASSET_MANIFEST.md.
+
+This is a local visual revision awaiting owner testing. Existing low-poly animal models and grid-defined ground silhouettes still need further art work; this does not claim a final art direction. Pause implementation after launching the test build. Collect feedback on surface scale, angular silhouettes, readability and aiming before proposing the next delivery.
+
+
+## 2026-11-15 — cartoon direction correction
+
+Owner rejected the realistic surface direction and requested a unified cartoon style inspired by Wild Ones. Photographed ground materials are now disconnected; terrain uses clean warm earth bands and green turf, with toon shading. Broad-canopy scenery and animals use toon diffuse lighting, water is brighter and non-metallic, and the home/shelter photo backdrop is replaced by a flat palette background. Added presentation-only breathing, walking bounce/squash and recoil on top of animal clips. Collision and trajectory physics remain unchanged.
+
+Rendered battle checked in Forward+; match behavior suite passes. This is a local style iteration for owner testing, not final character art. Animal models retain their current quadruped anatomy: expressive faces, exaggerated cartoon proportions, bespoke rigs and polished UI are still pending. Await visual feedback before further feature expansion.
+
+
+## 2026-11-15 — mouse regression correction and character-art rejection
+
+Owner reported mouse firing no longer worked and rejected the remaining realistic animal bodies. Root cause: the newly created full-screen ColorRect backdrop kept its default mouse filter and intercepted pointer events. Set it to MOUSE_FILTER_IGNORE and added a regression assertion; aim_checks passes, including drag/release shot behavior. Space was an existing fallback, not an intended replacement.
+
+The current quadruped meshes are not accepted cartoon character art. Shading and squash/bounce do not satisfy the requested silhouette change. Before further presentation work, confirm upright oversized-head animal proportions versus exaggerated quadrupeds, source appropriate licensed models/rigs, and review the actual character silhouette at gameplay scale. Do not report this art requirement as completed.
+
+
+## 2026-11-15 — upright cartoon preview and local asset workflow approved
+
+Owner approved upright cartoon animals with oversized heads, small rounded bodies, short limbs and expressive eyes, then explicitly approved keeping free source-restricted models local while publishing code/setup instructions. Plumberry Plains Vol. 1 replaces the local cat/dog/wolf presentation. The pack is free for commercial games but is NOT CC0: its raw source files cannot be redistributed. assets/local_plumberry/ is ignored; CARTOON_ASSET_SETUP.md documents reproducible installation and the older CC0 fallback for fresh clones.
+
+Rendered wardrobe and battle previews inspected in Forward+. Aim, match and campaign behavior suites passed with the upright models installed. Mouse drag is retained; backdrop mouse interception remains fixed. Current adapter supports idle/walk/run/jump and weapon recoil. Additional facial/impact/celebration reactions and final character/weapon pose polish remain pending, as does owner visual acceptance. No new gameplay scope before the requested playtest.

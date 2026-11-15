@@ -6,6 +6,7 @@ const CAT := preload("res://assets/quaternius/cat.fbx")
 const WOLF := preload("res://assets/quaternius/wolf.fbx")
 const ROCKET := preload("res://assets/kenney/weapons/blaster-o.glb")
 const GRENADE := preload("res://assets/kenney/weapons/grenade-a.glb")
+var _cartoon := false
 var _model: Node3D
 var _animation: AnimationPlayer
 var _character := ""
@@ -15,11 +16,17 @@ var _grenade: Node3D
 var _idle := ""
 var _walk := ""
 var _shot_time := 0.0
+var _pose_time := 0.0
+var _rest_scale := Vector3.ONE
+var _rest_position := Vector3.ZERO
 
 func _init(character: String, outfit: int = 0) -> void:
 	_character = character
 	var source := CAT if character == "Mara" else (DOG if character in ["Eli", "Scout"] else WOLF)
-	_model = source.instantiate()
+	var species := "maple-the-cat" if character == "Mara" else ("ollie-the-terrier" if character in ["Eli", "Scout"] else "ziggy-the-wolf")
+	var path := "res://assets/local_plumberry/" + species + ".glb"
+	_cartoon = ResourceLoader.exists(path)
+	_model = (load(path) as PackedScene).instantiate() if _cartoon else source.instantiate()
 	add_child(_model)
 	_animation = _model.find_child("AnimationPlayer", true, false)
 	if _animation != null:
@@ -60,9 +67,13 @@ func _ready() -> void:
 		bounds = AABB(Vector3(-2.44106, -0.011576, -0.712004), Vector3(5.675112, 4.43445, 1.42404))
 	elif _character in ["Eli", "Scout"]:
 		bounds = AABB(Vector3(-3.206179, -0.0651, -1.493581), Vector3(6.904972, 4.383379, 2.334721))
-	var ratio := (0.62 if _character == "Scout" else 0.85) / bounds.size.y
+	if _cartoon:
+		bounds = _bounds(_model, Transform3D.IDENTITY)
+	var ratio := (0.78 if _character == "Scout" else 1.05) / bounds.size.y
 	_model.scale = Vector3.ONE * ratio
 	_model.position = Vector3(-bounds.get_center().x, -bounds.position.y, -bounds.get_center().z) * ratio
+	_rest_scale = _model.scale
+	_rest_position = _model.position
 
 
 func set_outfit(outfit: int) -> void:
@@ -72,13 +83,27 @@ func set_outfit(outfit: int) -> void:
 			var original: Material = mesh.mesh.surface_get_material(i)
 			var material := original.duplicate() as StandardMaterial3D if original is StandardMaterial3D else StandardMaterial3D.new()
 			material.albedo_color *= tint
+			material.diffuse_mode = BaseMaterial3D.DIFFUSE_TOON
+			material.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+			material.roughness = 1.0
 			mesh.set_surface_override_material(i, material)
 
 func pose(facing: float, speed: float, delta: float, _grounded: bool = true) -> void:
-	rotation.y = 0.0 if facing > 0.0 else PI
+	rotation.y = (1.0 if facing > 0.0 else -1.0) * 0.9 if _cartoon else (0.0 if facing > 0.0 else PI)
 	_shot_time = maxf(0.0, _shot_time - delta)
+	_pose_time += delta
+	if is_node_ready():
+		var walking := absf(speed) > 0.1
+		var bounce := absf(sin(_pose_time * 11.0)) if walking else 0.0
+		var breath := sin(_pose_time * 3.0) * 0.025
+		var squash := bounce * 0.08 + _shot_time * 0.12
+		_model.scale = _rest_scale * Vector3(1.0 + squash, 1.0 + breath - squash, 1.0 + squash)
+		_model.position = _rest_position + Vector3(-_shot_time * 0.12, bounce * 0.045, 0.0)
+		_model.rotation.z = sin(_pose_time * 11.0) * 0.035 if walking else -_shot_time * 0.12
 	if _animation != null:
 		var clip := _walk if absf(speed) > 0.1 and not _walk.is_empty() else _idle
+		if _cartoon and not _grounded and _animation.has_animation("jump"):
+			clip = "jump"
 		if not clip.is_empty() and _animation.current_animation != clip:
 			_animation.play(clip, 0.15)
 
@@ -91,3 +116,17 @@ func aim(facing: float, angle: float, weapon: ArtilleryShot.Weapon, active: bool
 
 func fire_animation() -> void:
 	_shot_time = 0.5
+
+
+static func _bounds(node: Node, parent_transform: Transform3D) -> AABB:
+	var transform := parent_transform
+	if node is Node3D:
+		transform *= node.transform
+	var result := AABB()
+	if node is MeshInstance3D:
+		result = transform * node.get_aabb()
+	for child in node.get_children():
+		var box := _bounds(child, transform)
+		if box.has_volume():
+			result = result.merge(box) if result.has_volume() else box
+	return result

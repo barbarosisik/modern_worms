@@ -1,2 +1,8 @@
 .godot/
 build/
+
+# Third-party source assets with a no-redistribution license.
+assets/local_plumberry/
+
+# Unused local surface experiments.
+assets/surfaces/

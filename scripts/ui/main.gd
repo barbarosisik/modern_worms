@@ -46,6 +46,14 @@ var _checkpoint_failed := false
 func _ready() -> void:
 	get_window().title = "Signal Fires"
 	_install_match_actions()
+	$ArenaBackdrop/LakeChelan.hide()
+	var backdrop := ColorRect.new()
+	backdrop.name = "CartoonBackdrop"
+	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	backdrop.color = Color("#30586b")
+	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	$ArenaBackdrop.add_child(backdrop)
+	$Interface/Home/Card/Content/PhotoCredit.hide()
 	start_button.pressed.connect(_start_lab)
 	match_button.pressed.connect(_start_match)
 	solo_button.pressed.connect(_start_solo)

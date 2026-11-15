@@ -1,11 +1,12 @@
 shader_type spatial;
-varying vec3 local_point;
-void vertex() { local_point = VERTEX; }
+render_mode diffuse_toon, specular_disabled;
+varying vec3 point;
+void vertex() { point = VERTEX; }
 void fragment() {
-	float grain = fract(sin(dot(floor(local_point.xy * 19.0), vec2(12.9898, 78.233))) * 43758.5453);
-	float strata = sin(local_point.y * 4.8 + sin(local_point.x * 0.65) * 0.7) * 0.5 + 0.5;
-	vec3 soil = mix(vec3(0.29, 0.19, 0.13), vec3(0.46, 0.32, 0.20), strata * 0.55 + grain * 0.15);
-	vec3 grass = mix(vec3(0.26, 0.42, 0.13), vec3(0.48, 0.62, 0.22), grain * 0.35 + 0.35);
-	ALBEDO = mix(soil, grass, COLOR.g);
-	ROUGHNESS = 0.95;
+ float wave = sin(point.x * 0.75) * 0.16 + sin(point.x * 1.6) * 0.06;
+ float band = smoothstep(0.45, 0.52, fract((point.y + wave) * 0.43));
+ vec3 earth = mix(vec3(0.40,0.21,0.14), vec3(0.54,0.30,0.19), band * 0.38);
+ vec3 turf = vec3(0.36,0.64,0.18);
+ ALBEDO = mix(earth, turf, COLOR.g);
+ ROUGHNESS = 1.0;
 }

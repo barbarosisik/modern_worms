@@ -56,6 +56,7 @@ func _check_controls() -> void:
 	app.set("settings_path", "user://aim_check_%d.cfg" % OS.get_process_id())
 	root.add_child(app)
 	await process_frame
+	_expect(app.get_node("ArenaBackdrop/CartoonBackdrop").mouse_filter == Control.MOUSE_FILTER_IGNORE, "Decorative backdrop must not intercept drag firing.")
 	_click(app.get_node("%MatchButton"))
 	await physics_frame
 	var arena := app.get_node("MatchArena") as MatchArena
