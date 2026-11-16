@@ -83,6 +83,7 @@ func _ready() -> void:
 	lab.hud_changed.connect(_update_hud)
 	arena.hud_changed.connect(_update_match_hud)
 	arena.match_finished.connect(_show_result)
+	InterfaceSkin.install(self)
 	_load_settings()
 	campaign.load_checkpoint(campaign_checkpoint_path)
 	_apply_settings()

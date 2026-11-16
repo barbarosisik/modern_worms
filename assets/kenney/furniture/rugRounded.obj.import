@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://cmvwspo1g4bvg"
+path="res://.godot/imported/rugRounded.obj-c7e9c0479f8c9c0b4c6d86e9d17262f7.mesh"
+
+[deps]
+
+files=["res://.godot/imported/rugRounded.obj-c7e9c0479f8c9c0b4c6d86e9d17262f7.mesh"]
+
+source_file="res://assets/kenney/furniture/rugRounded.obj"
+dest_files=["res://.godot/imported/rugRounded.obj-c7e9c0479f8c9c0b4c6d86e9d17262f7.mesh", "res://.godot/imported/rugRounded.obj-c7e9c0479f8c9c0b4c6d86e9d17262f7.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

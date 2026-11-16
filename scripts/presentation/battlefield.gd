@@ -15,7 +15,7 @@ func _ready() -> void:
 		for i in range(ceili((TerrainGrid.WORLD_SIZE.x + 50.0) / 5.0)):
 			var tree := add_asset("tree_oak",
 				Vector3(-20.0 + i * 5.0, 0.0, -30.0 + layer * 9.0), Vector3.ONE * rng.randf_range(3.4, 5.2))
-			_tint(tree, Color("#82b9aa") if layer == 0 else Color("#50a37a"))
+			_tint(tree, Color("#537e83") if layer == 0 else Color("#356166"))
 	var water := MeshInstance3D.new()
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(TerrainGrid.WORLD_SIZE.x + 85.0, 200.0)

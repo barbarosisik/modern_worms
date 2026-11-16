@@ -3,11 +3,12 @@
 [ext_resource type="Script" path="res://scripts/campaign/campaign_shelter.gd" id="1"]
 
 [sub_resource type="Environment" id="ShelterEnvironment"]
-background_mode = 3
+background_mode = 1
+background_color = Color(0.12, 0.21, 0.23, 1)
 background_canvas_max_layer = -1
-ambient_light_source = 3
-ambient_light_color = Color(0.88, 0.92, 1, 1)
-ambient_light_energy = 0.7
+ambient_light_source = 2
+ambient_light_color = Color(1, 0.91, 0.76, 1)
+ambient_light_energy = 0.65
 tonemap_mode = 2
 
 [node name="CampaignShelter" type="Node3D"]
@@ -22,8 +23,8 @@ environment = SubResource("ShelterEnvironment")
 
 [node name="WindowLight" type="DirectionalLight3D" parent="."]
 rotation_degrees = Vector3(-37, -29, 0)
-light_color = Color(0.78, 0.9, 1, 1)
-light_energy = 1.13
+light_color = Color(1, 0.9, 0.72, 1)
+light_energy = 0.9
 shadow_enabled = true
 
 [node name="CabinLamp" type="OmniLight3D" parent="."]
