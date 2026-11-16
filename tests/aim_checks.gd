@@ -63,6 +63,15 @@ func _check_controls() -> void:
 	var game := arena.simulation
 	var guide := arena.trajectory_guide
 	var power := app.get_node("%MatchPower") as ProgressBar
+	var zoom_hint := app.get_node("Interface/MatchHud/ZoomHint") as Label
+	_expect(zoom_hint.is_visible_in_tree() and zoom_hint.mouse_filter == Control.MOUSE_FILTER_IGNORE,
+		"Visible zoom instructions do not intercept firing.")
+	_expect(arena.camera.fov < 27.0, "The battle opens closer to the player characters.")
+	var opening_transform := arena.camera.transform
+	for unit in game.units:
+		if unit.team == 0:
+			var screen_point := arena.camera.unproject_position(Vector3(unit.feet.x, unit.feet.y + 0.5, 0))
+			_expect(Rect2(30, 180, 1220, 400).has_point(screen_point), "Opening view keeps each player character clear of the HUD.")
 	_expect(not paused and game.shot == null, "The click starting a match does not fire a shot.")
 	var point := Vector2(620.0, 280.0)
 	var strong_pull := point + Vector2(205.0, 115.0)
@@ -87,8 +96,12 @@ func _check_controls() -> void:
 	_expect(game.shot == null and not arena._aim_controls.is_dragging(), "Right-click cancels without firing on release.")
 	_send(wheel.duplicate())
 	_expect(arena.camera.fov < old_fov, "Wheel zoom works outside a drag.")
+	wheel.button_index = MOUSE_BUTTON_WHEEL_DOWN
+	_send(wheel.duplicate())
+	_expect(arena.camera.fov == old_fov, "Scrolling down zooms back out.")
+	_send(wheel.duplicate())
 	_tap(KEY_HOME)
-	_expect(arena.camera.fov == 27.0, "Home restores the battle camera.")
+	_expect(arena.camera.fov == old_fov and arena.camera.transform == opening_transform, "Home restores the closer opening view.")
 
 	_mouse_button(point, true)
 	_mouse_motion(strong_pull)

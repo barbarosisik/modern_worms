@@ -13,6 +13,7 @@ const GRENADE_COLOR := Color(0.65, 0.95, 0.46)
 const START_ANGLE := 26.0
 const FLASH_DURATION := 0.24
 const COMPUTER_WAIT_TICKS := 12
+const START_CAMERA_FOV := 23.0
 
 @onready var terrain_mesh: TerrainMesh = $TerrainMesh
 @onready var camera: Camera3D = $Camera3D
@@ -98,13 +99,25 @@ func reset_match(against_computer: bool = false, mission: CampaignMission = null
 	computer_enabled = against_computer
 	simulation.reset(mission, skirmish_map)
 	_computer.error_scale = mission.cpu_error_scale if mission != null else 1.0
+	var camera_focus := Vector3(15.5, 5.5, 0.0)
 	if mission != null and mission.index == 0:
 		camera.position = Vector3(14.4, 8.6, 32.5)
-		camera.look_at(Vector3(12.5, 4.4, 0.0))
+		camera_focus = Vector3(12.5, 4.4, 0.0)
 	else:
 		camera.position = Vector3(18.5, 11.0, 44.0)
-		camera.look_at(Vector3(15.5, 5.5, 0.0))
-	camera.fov = 27.0
+	# Keep the opening team in the left third of a slightly closer view.
+	var team_center := 0.0
+	var team_count := 0
+	for unit in simulation.units:
+		if unit.team == 0:
+			team_center += unit.feet.x
+			team_count += 1
+	if team_count > 0:
+		var shift := team_center / team_count + 4.0 - camera_focus.x
+		camera.position.x += shift
+		camera_focus.x += shift
+	camera.look_at(camera_focus)
+	camera.fov = START_CAMERA_FOV
 	_home_camera = camera.transform
 	battlefield.dress(simulation.terrain, mission.index if mission != null else 1)
 	terrain_mesh.rebuild_all(simulation.terrain)
@@ -169,7 +182,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 	if event is InputEventKey and event.pressed and event.keycode == KEY_HOME and not _aim_controls.is_dragging():
 		camera.transform = _home_camera
-		camera.fov = 27.0
+		camera.fov = START_CAMERA_FOV
 	if event is InputEventKey and event.pressed and event.keycode == KEY_3:
 		select_weapon(ArtilleryShot.Weapon.SHOTGUN)
 	if event.is_action_pressed("unit_jump"):

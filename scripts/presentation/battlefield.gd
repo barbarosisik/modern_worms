@@ -82,7 +82,7 @@ func add_asset(asset: String, point: Vector3, dimensions: Vector3, parent: Node3
 
 func _tint(node: Node3D, color: Color) -> void:
 	var material := StandardMaterial3D.new()
-	material.albedo_color = color
+	material.albedo_color = color.darkened(0.12)
 	material.roughness = 1.0
 	material.diffuse_mode = BaseMaterial3D.DIFFUSE_TOON
 	material.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
