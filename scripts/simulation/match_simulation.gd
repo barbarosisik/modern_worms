@@ -13,6 +13,7 @@ const RESCUE_DISTANCE := 0.82
 var terrain: TerrainGrid
 var units: Array[MatchUnit] = []
 var shot: ArtilleryShot
+var pellet_traces: Array[Vector2] = []
 var phase := Phase.ACTIVE
 var turn_index := 0
 var turn_number := 1
@@ -39,9 +40,9 @@ func _init(build_arena: bool = true) -> void:
 		reset()
 
 
-func reset(mission: CampaignMission = null) -> void:
+func reset(mission: CampaignMission = null, map_index: int = 0) -> void:
 	if mission == null:
-		_set_up_skirmish()
+		_set_up_skirmish(map_index)
 		rescue_target = null
 		_wind_scale = 1.0
 	else:
@@ -50,6 +51,7 @@ func reset(mission: CampaignMission = null) -> void:
 		rescue_target = mission.rescue_target
 		_wind_scale = mission.wind_scale
 	shot = null
+	pellet_traces.clear()
 	phase = Phase.ACTIVE
 	turn_index = 0
 	turn_number = 1
@@ -70,18 +72,38 @@ func reset(mission: CampaignMission = null) -> void:
 	_quiet_time = 0.0
 
 
-func _set_up_skirmish() -> void:
+func _set_up_skirmish(map_index: int = 0) -> void:
 	terrain = TerrainGrid.new()
-	terrain.fill_rect(Rect2i(8, 10, 72, 22))
-	terrain.fill_rect(Rect2i(92, 10, 72, 10))
-	terrain.fill_rect(Rect2i(176, 10, 72, 22))
-	terrain.fill_rect(Rect2i(119, 20, 14, 20))
+	terrain.fill_rounded_rect(Rect2i(8, 10, 72, 22))
+	terrain.fill_rounded_rect(Rect2i(92, 10, 72, 10))
+	terrain.fill_rounded_rect(Rect2i(176, 10, 72, 22))
+	terrain.fill_rounded_rect(Rect2i(119, 20, 14, 20))
 	units = [
 		MatchUnit.new(0, 1, Vector2(4.0, 4.0)),
 		MatchUnit.new(1, 1, Vector2(28.0, 4.0)),
 		MatchUnit.new(0, 2, Vector2(8.5, 4.0)),
 		MatchUnit.new(1, 2, Vector2(23.5, 4.0)),
 	]
+
+	if map_index > 0:
+		terrain = TerrainGrid.new()
+		for column in range(8, 248):
+			var height := 32
+			if map_index == 1:
+				height = 26 + roundi(18.0 * sin(float(column - 8) / 240.0 * PI))
+				if column in range(120, 136):
+					continue
+			else:
+				if column in range(82, 96) or column in range(160, 174):
+					continue
+				height = 32 if column < 82 or column >= 174 else 22
+			terrain.fill_rect(Rect2i(column, 7, 1, height - 7))
+		for unit in units:
+			var x := floori(unit.feet.x / TerrainGrid.CELL_SIZE)
+			for row in range(127, 0, -1):
+				if terrain.is_solid(Vector2i(x, row)):
+					unit.feet.y = (row + 1) * TerrainGrid.CELL_SIZE
+					break
 
 
 func active_unit() -> MatchUnit:
@@ -113,6 +135,10 @@ func pass_turn() -> void:
 func fire(angle: float, power: float, weapon: ArtilleryShot.Weapon) -> bool:
 	if phase != Phase.ACTIVE or not active_unit().alive():
 		return false
+	pellet_traces.clear()
+	if weapon == ArtilleryShot.Weapon.SHOTGUN:
+		_fire_shotgun(angle, power)
+		return true
 	shot = build_shot(angle, power, weapon, active_unit().facing)
 	_resolve("Rocket in flight." if weapon == ArtilleryShot.Weapon.ROCKET else "Grenade in flight.")
 	return true
@@ -126,6 +152,11 @@ func build_shot(angle: float, power: float, weapon: ArtilleryShot.Weapon, facing
 	var projectile := ArtilleryShot.new(unit.center(), direction * speed, weapon)
 	projectile.gravity = 9.0 if weapon == ArtilleryShot.Weapon.ROCKET else 13.0
 	projectile.wind = wind if weapon == ArtilleryShot.Weapon.ROCKET else 0.0
+	if weapon == ArtilleryShot.Weapon.SHOTGUN:
+		projectile.velocity = direction * 60.0
+		projectile.gravity = 0.0
+		projectile.wind = 0.0
+		projectile.travel_limit = 9.0
 	projectile.bounds = Rect2(-1.0, WATER_LEVEL, TerrainGrid.WORLD_SIZE.x + 2.0, 24.0)
 	# Check the muzzle segment on the first tick, even when the unit is pressed against cover.
 	projectile.launch_offset = direction * 0.61
@@ -229,7 +260,7 @@ func _check_rescue(unit: MatchUnit, start: Vector2) -> void:
 
 
 static func crater_radius(weapon: ArtilleryShot.Weapon) -> float:
-	return 2.75 if weapon == ArtilleryShot.Weapon.GRENADE else 2.45
+	return 1.85 if weapon == ArtilleryShot.Weapon.GRENADE else 1.6
 
 
 static func blast_strength(distance: float, weapon: ArtilleryShot.Weapon) -> float:
@@ -306,3 +337,38 @@ func _next_unit_on_team(team: int) -> int:
 		if units[index].team == team and units[index].alive():
 			return index
 	return turn_index
+
+
+func _fire_shotgun(angle: float, power: float) -> void:
+	var shooter := active_unit()
+	var muzzle := shooter.center()
+	var total := 0
+	# Pull controls spread: a deliberate full pull narrows the five-pellet cone.
+	var spread := lerpf(9.0, 4.0, clampf(power,0.0,1.0))
+	for pellet in range(5):
+		var direction := Vector2.from_angle(deg_to_rad(angle + (pellet-2) * spread * 0.5))
+		direction.x *= shooter.facing
+		var end := muzzle + direction * 9.0
+		var contact := terrain.sweep(muzzle,end)
+		if contact != null:
+			end = contact.point
+		var nearest: MatchUnit = null
+		var hit_time := 1.0
+		for unit in units:
+			if unit == shooter or not unit.alive():
+				continue
+			var t := Geometry2D.segment_intersects_circle(muzzle,end,unit.center(),ArtilleryShot.UNIT_HIT_RADIUS)
+			if t >= 0.0 and t < hit_time:
+				hit_time = t
+				nearest = unit
+		if nearest != null:
+			end = muzzle.lerp(end,hit_time)
+			var damage := roundi(lerpf(14.0,4.0,clampf(muzzle.distance_to(end)/9.0,0.0,1.0)))
+			total += mini(nearest.health,damage)
+			nearest.health = maxi(0,nearest.health-damage)
+			nearest.velocity += Vector2(direction.x * 0.7,0.3)
+			nearest.grounded = false
+		_collect_supply(shooter.team,muzzle,end)
+		pellet_traces.append(muzzle)
+		pellet_traces.append(end)
+	_resolve("Shotgun: %d damage. Cover blocks pellets." % total)

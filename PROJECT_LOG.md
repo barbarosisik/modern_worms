@@ -80,11 +80,88 @@
 - Updated the old plan to point to the new proposed delivery order. This publication changes documentation only; no gameplay fix, additional mission or visual overhaul is claimed. Validation is limited to document structure, references, task/dependency consistency and the three-file diff.
 - Gameplay implementation is paused pending the owner's revisions or explicit **go**. The documentation goes through the existing task-branch workflow into `development_branch`; `main` requires separate owner approval.
 
+## 2026-11-10 | Step One work in progress and handoff
+
+- The owner approved starting the cumulative first delivery. [STEP_ONE.md](STEP_ONE.md) prioritizes campaign navigation, a stylized battlefield built from premade assets, readable characters/weapons, camera and aim feedback, and a compact combat HUD. Signal Fires remains a working title. Wild Ones is the reference.
+- Started `feature/stylized-first-playable` from `5edc51f`. The baseline campaign check reached both existing missions. The reported block after the first mission remains unreproduced. Direct shelter map access and honest content labels are pending.
+- Imported selected Kenney and Quaternius models with sources in the [asset manifest](assets/ASSET_MANIFEST.md). Reworked the actor wrapper for imported humans, Scout and separate animation clips. Drafted arena dressing and earth/water shaders. Scene wiring, camera/HUD work and rendered verification remain pending.
+- Godot headless import and the existing campaign suite passed after the actor change. The branch is a handoff checkpoint. Finish and test it before integrating into `development_branch`.
+
 ## Next session
 
-- [ ] Read owner revisions to [WILD_ONES_MVP_PLAN.md](WILD_ONES_MVP_PLAN.md). Do not begin gameplay work until **go**.
-- [ ] After approval, follow section 19: preserve the save, reproduce campaign navigation and fix the verified blocker/discoverability issue.
-- [ ] Build the asset-based visual sample and terrain feasibility checkpoint before expanding the campaign. Review the actual playable appearance, control feel and weapon feedback.
-- [ ] Continue through the new plan's dependencies and acceptance gates, updating this log with actual implementation/test evidence. Do not revert to adding mission three as the first task.
+- [ ] Continue the existing feature branch using [STEP_ONE.md](STEP_ONE.md). Finish campaign access, wire the art into both battles, and complete the camera, aiming feedback and HUD.
+- [ ] Run the Godot behavior suites and a rendered Windows playthrough. Save evidence and update this log before integrating the feature into `development_branch`.
+- [ ] Follow the remaining priorities in [WILD_ONES_MVP_PLAN.md](WILD_ONES_MVP_PLAN.md), beginning with the four-weapon checkpoint. Expand the campaign after the visual and combat foundation is playable.
 
 For each new log entry, record the date, branch or commit, completed work, verification performed, open questions, and the next concrete action.
+
+
+## 2026-11-15 — animal cast, integrated battlefield and skirmish variety
+
+Resumed `feature/stylized-first-playable` from published checkpoint `523888c`. Verified the staged checkpoint tree matched the fetched remote before aligning the local branch; retained new working edits. No main changes.
+
+Owner explicitly selected an all-animal cast. Imported licensed Quaternius cat/wolf models alongside the existing dog. Added animation selection, idle-pose sizing and per-surface coat tinting; preserved names, story relationship, save version, roster order and progression. Corrected the dog's initial floating/undersized placement by measuring its animated idle pose in Forward+ and storing those bounds for consistent headless rendering behavior.
+
+Connected forest/lake scene, soil/grass shader and destruction-aware scenery; equipped guns, projectile meshes and imported supply crate. Added right-click cancellation, mouse-wheel zoom/Home reset, drag-camera lock, pull tether, clickable weapon buttons, direct shelter map access and truthful two-mission end message. Added three selectable skirmish layouts with supported unit spawns. No extra weapon behavior or species skill is claimed yet.
+
+Validation: terrain_lab, match, solo, aim, supply and campaign suites passed after integration. Expanded aim checks cover cancellation/zoom locking/reset; campaign reopening uses the new MapShortcut. New skirmish_maps suite passes for all three layouts, supplies and CPU plans. Windows Vulkan Forward+ wardrobe and battle screenshots reviewed at 1280x720. Rendered review found/fixed dog placement and excessive background/water contrast. Temporary screenshots/source archive live only under ignored `.godot`. Original user save paths were not overwritten by tests.
+
+Next: four-weapon behavior slice (shotgun/mine), animal support abilities, third story mission and rescue, combat feedback and full manual resolution/balance review. Exact priorities and acceptance scope in STEP_ONE.md. Full eight-tool/ten-level vision is unfinished.
+
+
+## 2026-11-15 — surface appearance test handoff
+
+Owner requested less pointed geometry and believable-looking surfaces, with a playtest before more feature work. Replaced the battle's pointed pine silhouettes with imported broad-canopy oak models; removed oversized faceted mountain silhouettes. Added CC0 ambientCG soil/moss color and normal maps to terrain, including newly exposed crater faces. Physics occupancy and gameplay remain unchanged. Added imported-canopy normal smoothing. Source details are in assets/ASSET_MANIFEST.md.
+
+This is a local visual revision awaiting owner testing. Existing low-poly animal models and grid-defined ground silhouettes still need further art work; this does not claim a final art direction. Pause implementation after launching the test build. Collect feedback on surface scale, angular silhouettes, readability and aiming before proposing the next delivery.
+
+
+## 2026-11-15 — cartoon direction correction
+
+Owner rejected the realistic surface direction and requested a unified cartoon style inspired by Wild Ones. Photographed ground materials are now disconnected; terrain uses clean warm earth bands and green turf, with toon shading. Broad-canopy scenery and animals use toon diffuse lighting, water is brighter and non-metallic, and the home/shelter photo backdrop is replaced by a flat palette background. Added presentation-only breathing, walking bounce/squash and recoil on top of animal clips. Collision and trajectory physics remain unchanged.
+
+Rendered battle checked in Forward+; match behavior suite passes. This is a local style iteration for owner testing, not final character art. Animal models retain their current quadruped anatomy: expressive faces, exaggerated cartoon proportions, bespoke rigs and polished UI are still pending. Await visual feedback before further feature expansion.
+
+
+## 2026-11-15 — mouse regression correction and character-art rejection
+
+Owner reported mouse firing no longer worked and rejected the remaining realistic animal bodies. Root cause: the newly created full-screen ColorRect backdrop kept its default mouse filter and intercepted pointer events. Set it to MOUSE_FILTER_IGNORE and added a regression assertion; aim_checks passes, including drag/release shot behavior. Space was an existing fallback, not an intended replacement.
+
+The current quadruped meshes are not accepted cartoon character art. Shading and squash/bounce do not satisfy the requested silhouette change. Before further presentation work, confirm upright oversized-head animal proportions versus exaggerated quadrupeds, source appropriate licensed models/rigs, and review the actual character silhouette at gameplay scale. Do not report this art requirement as completed.
+
+
+## 2026-11-15 — upright cartoon preview and local asset workflow approved
+
+Owner approved upright cartoon animals with oversized heads, small rounded bodies, short limbs and expressive eyes, then explicitly approved keeping free source-restricted models local while publishing code/setup instructions. Plumberry Plains Vol. 1 replaces the local cat/dog/wolf presentation. The pack is free for commercial games but is NOT CC0: its raw source files cannot be redistributed. assets/local_plumberry/ is ignored; CARTOON_ASSET_SETUP.md documents reproducible installation and the older CC0 fallback for fresh clones.
+
+Rendered wardrobe and battle previews inspected in Forward+. Aim, match and campaign behavior suites passed with the upright models installed. Mouse drag is retained; backdrop mouse interception remains fixed. Current adapter supports idle/walk/run/jump and weapon recoil. Additional facial/impact/celebration reactions and final character/weapon pose polish remain pending, as does owner visual acceptance. No new gameplay scope before the requested playtest.
+
+## 2026-11-16 — contoured terrain, shotgun and combat feedback
+
+Owner requested reference research and automatic implementation after the cartoon preview. See REFERENCE_DESIGN_RESEARCH.md for sources, evidence limits and ordered next acceptance tasks.
+
+Implemented rounded platform layouts and marching-squares terrain caps with extruded boundaries and neighboring-chunk refresh. Softened imported oak canopy geometry, cached generated meshes, reduced backdrop density/lighting contrast and disabled water shadows. Added a third distinct weapon: five-pellet short-range shotgun with spread control, damage falloff, terrain/unit interception, friendly fire and projectile supply collection. CPU evaluates the actual behavior on isolated snapshots. Added tracers, projectile trails, floating damage numbers, hit reactions, recoil and three selectable weapon buttons. LMB hold/pull/release and RMB cancellation remain intact.
+
+Reduced rocket/grenade blast radii after eight opening-turn probes exposed overly lethal starts. This changes damage reach as well as crater size; maximum damage is unchanged. Updated the campaign shot fixture for the new radius and replaced a brittle one-seed miss assertion with a 16-seed hit/miss distribution check.
+
+Validation: terrain_lab, terrain_contour, match, solo, aim, supply, campaign, skirmish_maps and shotgun suites passed. Rendered Forward+ battle inspected at 1280x720, including a controlled shotgun-hit fixture showing tracers and 33 damage. A 1920x1080 capture was generated; this does not constitute a full manual playthrough at both resolutions. Terrain tests compare dirty rebuilds to full rebuilds and check a crater stays visually open. Shotgun checks cover falloff, cover, range, allies, turn ownership and CPU snapshot isolation. Tests use isolated saves.
+
+Still pending: authored environment landmarks and finer surfaces, camera/readability polish, mine behavior, audio, complete character reactions, species abilities and mission three. Terrain grass is still grid-influenced; this is a measurable gameplay/presentation checkpoint, not final art or the complete MVP. Next delivery is detailed in REFERENCE_DESIGN_RESEARCH.md. Restricted local model sources remain excluded from publication. Feature branch only; main unchanged.
+
+## 2026-11-16 — character visibility and opening camera
+
+Owner requested only a slightly dimmer background, a closer opening view toward their characters and visible zoom instructions. Darkened distant tree colors by 12% and sky/water colors by 10%; foreground characters, terrain, lighting and mechanics retain their existing values. Battle opening FOV is now 23 degrees instead of 27, with horizontal framing toward the player's team. Home restores that opening view. Added a persistent mouse-transparent HUD hint: wheel up zooms in, wheel down zooms out, Home resets.
+
+Validation: aim_checks and campaign_checks passed. Aim checks cover opening player visibility, the non-blocking zoom hint, zoom in/out, drag locking and reset to the new camera. Forward+ opening views inspected at 1280x720 and 1920x1080, including First Signal at 720p. No other gameplay or content changes. Next planned work remains authored environment landmarks/surfaces, mines, audio/reactions, species abilities and mission three; these were not started in this revision. Published on the existing feature branch for owner testing.
+
+## 2026-11-16 — map camera panning
+
+Added camera exploration requested by the owner: middle-mouse drag or Shift + left-mouse drag grabs and moves the map horizontally/vertically. View-centre bounds keep exploration within the 32 x 16 gameplay area. Panning, zoom and Home reset work during human turns, CPU turns and shot resolution. Camera controls stay locked while aiming; pan gestures cannot start a shot. Drag releases remain captured across HUD crossings and Shift release. Pause, focus loss, Home and new matches clear an active pan. Updated the visible HUD instructions.
+
+Validation: camera_checks, aim_checks and solo_checks passed. New camera suite exercises world-point tracking, revealing an off-screen enemy, map limits, both pan gestures, GUI/aim ownership, CPU/resolving access and cancellation. Reviewed a Forward+ 1280x720 capture after dragging to the enemy side. This revision changes camera navigation and its hint only; no weapons, characters, art, balance or campaign content changes. Feature branch publication; main still awaits owner approval.
+
+## 2026-11-16 — development integration and manual main releases
+
+Owner clarified the standing delivery rule: publish every completed task through its feature/fix branch into development_branch; main releases are manual and handled by the owner. Added AGENTS.md so future work follows this policy. This supersedes earlier notes that left completed checkpoints only on the feature branch or described main as an agent action after approval.
+
+Prepared PR #8 for integration into development_branch, covering the published cartoon battlefield/roster checkpoint, shotgun, visibility adjustments and camera panning. All ten suites passed before integration: terrain_lab, terrain_contour, match, solo, aim, supply, campaign, skirmish_maps, shotgun and camera. Development is an ancestor of the feature head, so the integration adds no conflicting code. Main was verified at 742b5910726cba6a4cd8ad12da9fc9a0497ee1c8 and is outside this delivery. Remaining game work stays listed in REFERENCE_DESIGN_RESEARCH.md; merging this checkpoint does not mark the full MVP complete.

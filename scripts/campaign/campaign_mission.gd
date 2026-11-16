@@ -20,9 +20,9 @@ func _init(mission_index: int, run: CampaignRun) -> void:
 func _first_signal(run: CampaignRun) -> void:
 	wind_scale = 0.5
 	cpu_error_scale = 1.45
-	terrain.fill_rect(Rect2i(16, 9, 86, 21))
-	terrain.fill_rect(Rect2i(102, 9, 12, 9))
-	terrain.fill_rect(Rect2i(114, 9, 70, 19))
+	terrain.fill_rounded_rect(Rect2i(16, 9, 86, 21))
+	terrain.fill_rounded_rect(Rect2i(102, 9, 12, 9))
+	terrain.fill_rounded_rect(Rect2i(114, 9, 70, 19))
 	_add_rescuers(run, 3.75)
 	var lookout := MatchUnit.new(1, 1, Vector2(17.25, 3.5))
 	lookout.display_name = "Lookout"
@@ -35,10 +35,10 @@ func _first_signal(run: CampaignRun) -> void:
 func _ferry_landing(run: CampaignRun) -> void:
 	wind_scale = 1.0
 	cpu_error_scale = 0.82
-	terrain.fill_rect(Rect2i(8, 10, 78, 22))
-	terrain.fill_rect(Rect2i(94, 10, 66, 14))
-	terrain.fill_rect(Rect2i(165, 10, 83, 24))
-	terrain.fill_rect(Rect2i(118, 24, 10, 9))
+	terrain.fill_rounded_rect(Rect2i(8, 10, 78, 22))
+	terrain.fill_rounded_rect(Rect2i(94, 10, 66, 14))
+	terrain.fill_rounded_rect(Rect2i(165, 10, 83, 24))
+	terrain.fill_rounded_rect(Rect2i(118, 24, 10, 9))
 	_add_rescuers(run, 4.0)
 	var rigger := MatchUnit.new(1, 1, Vector2(23.2, 4.25))
 	rigger.display_name = "Rigger"

@@ -5,11 +5,12 @@
 [ext_resource type="Script" path="res://scripts/presentation/trajectory_guide.gd" id="3"]
 
 [sub_resource type="Environment" id="Environment"]
-background_mode = 3
+background_mode = 1
+background_color = Color(0.432, 0.621, 0.675, 1)
 background_canvas_max_layer = -1
 ambient_light_source = 3
 ambient_light_color = Color(0.68, 0.8, 1, 1)
-ambient_light_energy = 0.65
+ambient_light_energy = 0.45
 tonemap_mode = 2
 
 [sub_resource type="StandardMaterial3D" id="WaterMaterial"]
@@ -58,16 +59,17 @@ script = ExtResource("2")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 position = Vector3(18.5, 11, 44)
-fov = 27.0
+fov = 23.0
 environment = SubResource("Environment")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
 rotation_degrees = Vector3(-42, -25, 0)
 light_color = Color(1, 0.95, 0.84, 1)
-light_energy = 1.45
+light_energy = 0.85
 shadow_enabled = true
 
 [node name="Water" type="MeshInstance3D" parent="."]
+visible = false
 position = Vector3(16, 0.72, 0)
 mesh = SubResource("WaterMesh")
 

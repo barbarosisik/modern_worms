@@ -31,6 +31,7 @@ const CONFIG_SECTION := "options"
 @onready var fullscreen: CheckButton = %Fullscreen
 @onready var save_status: Label = %SaveStatus
 
+var _weapon_buttons: Array[Button] = []
 var _screen := Screen.HOME
 var _active_game := Screen.LAB
 var _return_screen := Screen.HOME
@@ -45,6 +46,15 @@ var _checkpoint_failed := false
 
 func _ready() -> void:
 	get_window().title = "Signal Fires"
+	_install_match_actions()
+	$ArenaBackdrop/LakeChelan.hide()
+	var backdrop := ColorRect.new()
+	backdrop.name = "CartoonBackdrop"
+	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	backdrop.color = Color("#30586b")
+	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	$ArenaBackdrop.add_child(backdrop)
+	$Interface/Home/Card/Content/PhotoCredit.hide()
 	start_button.pressed.connect(_start_lab)
 	match_button.pressed.connect(_start_match)
 	solo_button.pressed.connect(_start_solo)
@@ -192,7 +202,7 @@ func _refresh_shelter_hud(station: int) -> void:
 		campaign.cleared, CampaignRun.MISSIONS.size(), campaign.supplies
 	]
 	%ShelterStory.text = (
-		"Mara: The ferry's ours. Tomorrow we follow the relay into the pines." if campaign.finished()
+		"Both available missions complete. More chapters are planned." if campaign.finished()
 		else "Eli: Scout's safe. Let's get our gear before we take the ferry."
 	)
 	var action := %StationAction as Button
@@ -202,6 +212,7 @@ func _refresh_shelter_hud(station: int) -> void:
 
 func _pause_game() -> void:
 	lab.cancel_charge()
+	arena.cancel_camera_pan()
 	if not arena.is_computer_turn():
 		arena.cancel_input()
 	_show_screen(Screen.PAUSE)
@@ -376,7 +387,10 @@ func _update_match_hud(
 	var wind := "Calm" if is_zero_approx(state.wind) else ("%s %.1f" % [
 		"→" if state.wind > 0.0 else "←", absf(state.wind)
 	])
-	var weapon_name := "Rocket" if weapon == ArtilleryShot.Weapon.ROCKET else "Grenade"
+	for i in range(_weapon_buttons.size()):
+		_weapon_buttons[i].set_pressed_no_signal(i == weapon)
+		_weapon_buttons[i].disabled = arena.is_computer_turn() or state.phase != MatchSimulation.Phase.ACTIVE
+	var weapon_name: String = ArtilleryShot.WEAPON_NAMES[weapon]
 	%WeaponStatus.text = "%s  ·  Wind %s  ·  Aim %+.0f°" % [weapon_name, wind, angle]
 	var computer_status := arena.computer_status()
 	%MatchStatus.text = computer_status if not computer_status.is_empty() else state.message
@@ -403,3 +417,33 @@ func _update_mission_hud(state: MatchSimulation) -> void:
 		if unit.team == 0 and unit.alive():
 			names.append("[%s]" % unit.display_name if unit == state.active_unit() else unit.display_name)
 	%PlayerQueue.text = "TURN ORDER   " + "  ›  ".join(names)
+
+
+func _install_match_actions() -> void:
+	var maps := OptionButton.new()
+	maps.name = "SkirmishMap"
+	maps.tooltip_text = "Choose terrain for solo and local skirmishes. Story maps are fixed."
+	for title in ["Skirmish map: River Outposts", "Skirmish map: Split Ridgeline", "Skirmish map: Broken Causeway"]:
+		maps.add_item(title)
+	solo_button.get_parent().add_child(maps)
+	solo_button.get_parent().move_child(maps, solo_button.get_index())
+	maps.item_selected.connect(func(index: int) -> void: arena.skirmish_map = index)
+	var map_button := Button.new()
+	map_button.name = "MapShortcut"
+	map_button.text = "Mission map"
+	map_button.position = Vector2(26, 100)
+	map_button.custom_minimum_size = Vector2(180, 44)
+	shelter_hud.add_child(map_button)
+	map_button.pressed.connect(func() -> void: _open_shelter_station(CampaignShelter.Station.MAP))
+	var weapons := HBoxContainer.new()
+	weapons.position = Vector2(26, 110)
+	match_hud.add_child(weapons)
+	for i in range(3):
+		var button := Button.new()
+		button.text = ["1 - Rocket", "2 - Grenade", "3 - Shotgun"][i]
+		button.custom_minimum_size = Vector2(140, 42)
+		button.tooltip_text = ["Explodes on contact. Direct shots and terrain carving.", "Bounces before exploding. Lob it behind cover.", "Five pellets. Short range; cover blocks shots. Pull further to tighten spread."][i]
+		button.toggle_mode = true
+		_weapon_buttons.append(button)
+		weapons.add_child(button)
+		button.pressed.connect(arena.select_weapon.bind(i))

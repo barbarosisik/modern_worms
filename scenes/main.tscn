@@ -526,6 +526,22 @@ theme_override_font_sizes/font_size = 24
 horizontal_alignment = 1
 text = "TURN 1  ·  Blue 1  ·  30s"
 
+[node name="ZoomHint" type="Label" parent="Interface/MatchHud"]
+layout_mode = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -350.0
+offset_top = 110.0
+offset_right = -26.0
+offset_bottom = 240.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.89, 0.95, 0.98, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.07, 0.1, 0.96)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 2
+text = "Middle mouse drag: look around\nOr Shift + left mouse drag\nWheel up / down: zoom in / out\nHome: reset view"
+
 [node name="BlueHealth" type="Label" parent="Interface/MatchHud"]
 unique_name_in_owner = true
 layout_mode = 0
@@ -612,7 +628,7 @@ show_percentage = true
 
 [node name="Controls" type="Label" parent="Interface/MatchHud/Readout/Content"]
 layout_mode = 2
-text = "A D Move   ·   W Jump   ·   Hold LMB, pull back and release   ·   1 Rocket   ·   2 Grenade   ·   P Pass"
+text = "A/D Move · W Jump · Drag LMB Fire · RMB Cancel · Wheel Zoom · Home Reset · 1/2/3 Weapon · P Pass"
 theme_override_colors/font_color = Color(0.67, 0.77, 0.83, 1)
 theme_override_font_sizes/font_size = 16
 

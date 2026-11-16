@@ -1,118 +1,148 @@
 class_name CampaignActor
 extends Node3D
 
-const BOOTS := Color("#213038")
-const STRAP := Color("#e0bb68")
-const SCOUT_FUR := Color("#b6783e")
-const SCOUT_DARK := Color("#71452f")
-
-var _jacket: StandardMaterial3D
-var _is_dog := false
-var _stride := 0.0
-var _legs: Array[MeshInstance3D] = []
-
+const DOG := preload("res://assets/quaternius/dog.fbx")
+const CAT := preload("res://assets/quaternius/cat.fbx")
+const WOLF := preload("res://assets/quaternius/wolf.fbx")
+const ROCKET := preload("res://assets/kenney/weapons/blaster-o.glb")
+const GRENADE := preload("res://assets/kenney/weapons/grenade-a.glb")
+var _cartoon := false
+var _model: Node3D
+var _animation: AnimationPlayer
+var _character := ""
+var _weapon_pivot := Node3D.new()
+var _launcher: Node3D
+var _grenade: Node3D
+var _shotgun: Node3D
+var _hurt_time := 0.0
+var _idle := ""
+var _walk := ""
+var _shot_time := 0.0
+var _pose_time := 0.0
+var _rest_scale := Vector3.ONE
+var _rest_position := Vector3.ZERO
 
 func _init(character: String, outfit: int = 0) -> void:
-	_is_dog = character == "Scout"
-	if _is_dog:
-		_build_dog()
-	else:
-		_build_person(character, outfit)
+	_character = character
+	var source := CAT if character == "Mara" else (DOG if character in ["Eli", "Scout"] else WOLF)
+	var species := "maple-the-cat" if character == "Mara" else ("ollie-the-terrier" if character in ["Eli", "Scout"] else "ziggy-the-wolf")
+	var path := "res://assets/local_plumberry/" + species + ".glb"
+	_cartoon = ResourceLoader.exists(path)
+	_model = (load(path) as PackedScene).instantiate() if _cartoon else source.instantiate()
+	add_child(_model)
+	_animation = _model.find_child("AnimationPlayer", true, false)
+	if _animation != null:
+		for clip in _animation.get_animation_list():
+			if "idle" in clip.to_lower():
+				_idle = clip
+			if "walk" in clip.to_lower() or "run" in clip.to_lower():
+				_walk = clip
+			_animation.get_animation(clip).loop_mode = Animation.LOOP_LINEAR
+		if not _idle.is_empty():
+			_animation.play(_idle)
+			_animation.advance(0.0)
+	set_outfit(outfit)
+	add_child(_weapon_pivot)
+	_weapon_pivot.position = Vector3(0.0, 0.5, 0.22)
+	_launcher = ROCKET.instantiate()
+	_launcher.rotation.y = -PI / 2.0
+	_launcher.scale = Vector3.ONE * 0.9
+	_launcher.position.x = 0.22
+	_weapon_pivot.add_child(_launcher)
+	_grenade = GRENADE.instantiate()
+	_grenade.scale = Vector3.ONE * 0.65
+	_grenade.position.x = 0.22
+	_weapon_pivot.add_child(_grenade)
+	_shotgun = preload("res://assets/kenney/weapons/blaster-n.glb").instantiate()
+	_shotgun.rotation.y = -PI / 2.0
+	_shotgun.scale = Vector3.ONE * 0.9
+	_shotgun.position.x = 0.22
+	_weapon_pivot.add_child(_shotgun)
+	_weapon_pivot.hide()
+	pose(1.0, 0.0, 0.0)
+
+func _ready() -> void:
+	if _animation != null and not _idle.is_empty():
+		_animation.play(_idle)
+		_animation.advance(0.0)
+	for skeleton in _model.find_children("*", "Skeleton3D", true, false):
+		skeleton.force_update_all_bone_transforms()
+	# Measured from the imported idle poses in Forward+. Cached so headless
+	# tests and rendered play use identical placement without GPU skin baking.
+	var bounds := AABB(Vector3(-5.559528, -0.019996, -1.462579), Vector3(9.979425, 5.305872, 2.215549))
+	if _character == "Mara":
+		bounds = AABB(Vector3(-2.44106, -0.011576, -0.712004), Vector3(5.675112, 4.43445, 1.42404))
+	elif _character in ["Eli", "Scout"]:
+		bounds = AABB(Vector3(-3.206179, -0.0651, -1.493581), Vector3(6.904972, 4.383379, 2.334721))
+	if _cartoon:
+		bounds = _bounds(_model, Transform3D.IDENTITY)
+	var ratio := (0.78 if _character == "Scout" else 1.05) / bounds.size.y
+	_model.scale = Vector3.ONE * ratio
+	_model.position = Vector3(-bounds.get_center().x, -bounds.position.y, -bounds.get_center().z) * ratio
+	_rest_scale = _model.scale
+	_rest_position = _model.position
 
 
 func set_outfit(outfit: int) -> void:
-	_jacket.albedo_color = CampaignRun.OUTFIT_COLORS[outfit]
+	var tint := [Color.WHITE, Color("#b8d5c0"), Color("#ecc0a4")][clampi(outfit, 0, 2)] as Color
+	for mesh in _model.find_children("*", "MeshInstance3D", true, false):
+		for i in range(mesh.mesh.get_surface_count()):
+			var original: Material = mesh.mesh.surface_get_material(i)
+			var material := original.duplicate() as StandardMaterial3D if original is StandardMaterial3D else StandardMaterial3D.new()
+			material.albedo_color *= tint
+			material.diffuse_mode = BaseMaterial3D.DIFFUSE_TOON
+			material.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+			material.roughness = 1.0
+			mesh.set_surface_override_material(i, material)
+
+func pose(facing: float, speed: float, delta: float, _grounded: bool = true) -> void:
+	rotation.y = (1.0 if facing > 0.0 else -1.0) * 0.9 if _cartoon else (0.0 if facing > 0.0 else PI)
+	_hurt_time = maxf(0.0,_hurt_time-delta)
+	_shot_time = maxf(0.0, _shot_time - delta)
+	_pose_time += delta
+	if is_node_ready():
+		var walking := absf(speed) > 0.1
+		var bounce := absf(sin(_pose_time * 11.0)) if walking else 0.0
+		var breath := sin(_pose_time * 3.0) * 0.025
+		var squash := bounce * 0.08 + _shot_time * 0.12
+		_model.scale = _rest_scale * Vector3(1.0 + squash, 1.0 + breath - squash, 1.0 + squash)
+		_model.position = _rest_position + Vector3(-_shot_time * 0.12, bounce * 0.045, 0.0)
+		_model.rotation.z = sin(_pose_time * 11.0) * 0.035 if walking else -_shot_time * 0.12
+	if _animation != null:
+		var clip := _walk if absf(speed) > 0.1 and not _walk.is_empty() else _idle
+		if _cartoon and not _grounded and _animation.has_animation("jump"):
+			clip = "jump"
+		if _hurt_time > 0.0 and _animation.has_animation("pain"):
+			clip = "pain"
+		if not clip.is_empty() and _animation.current_animation != clip:
+			_animation.play(clip, 0.15)
+
+func aim(facing: float, angle: float, weapon: ArtilleryShot.Weapon, active: bool) -> void:
+	_weapon_pivot.visible = active or _shot_time > 0.0
+	_launcher.visible = weapon == ArtilleryShot.Weapon.ROCKET
+	_grenade.visible = weapon == ArtilleryShot.Weapon.GRENADE
+	_shotgun.visible = weapon == ArtilleryShot.Weapon.SHOTGUN
+	_weapon_pivot.basis = Basis(Vector3.UP, -rotation.y) * Basis(Vector3.BACK, deg_to_rad(angle if facing > 0.0 else 180.0 - angle))
+	_launcher.position.x = 0.22 - _shot_time * 0.12
+	_shotgun.position.x = 0.22 - _shot_time * 0.18
+
+func fire_animation() -> void:
+	_shot_time = 0.5
 
 
-func pose(facing: float, speed: float, delta: float) -> void:
-	if _is_dog:
-		rotation.y = PI if facing < 0.0 else 0.0
-	else:
-		rotation.y = facing * 0.42
-	if absf(speed) > 0.1:
-		_stride += absf(speed) * delta * 7.0
-		for i in range(_legs.size()):
-			_legs[i].rotation.x = sin(_stride + PI * (i % 2)) * 0.28
-	else:
-		_stride = 0.0
-		for leg in _legs:
-			leg.rotation.x = 0.0
+static func _bounds(node: Node, parent_transform: Transform3D) -> AABB:
+	var transform := parent_transform
+	if node is Node3D:
+		transform *= node.transform
+	var result := AABB()
+	if node is MeshInstance3D:
+		result = transform * node.get_aabb()
+	for child in node.get_children():
+		var box := _bounds(child, transform)
+		if box.has_volume():
+			result = result.merge(box) if result.has_volume() else box
+	return result
 
 
-func _build_person(character: String, outfit: int) -> void:
-	var is_mara := character == "Mara"
-	var is_rescuer := is_mara or character == "Eli"
-	var skin := Color("#ae745b") if is_mara else Color("#d1a080")
-	var hair := Color("#362627") if is_mara else Color("#654737")
-	_jacket = _material(Color("#ac6644"))
-	if is_rescuer:
-		set_outfit(outfit)
-	for side in [-1.0, 1.0]:
-		var x: float = side * 0.075
-		_legs.append(_box(Vector3(x, 0.16, 0.0), Vector3(0.10, 0.25, 0.12), _material(BOOTS)))
-		_box(Vector3(x, 0.047, 0.026), Vector3(0.12, 0.09, 0.165), _material(BOOTS.darkened(0.2)))
-		var arm := _box(Vector3(side * 0.17, 0.43, 0.0), Vector3(0.087, 0.26, 0.13), _jacket)
-		arm.rotation.z = side * 0.14
-		_ellipsoid(Vector3(side * 0.184, 0.292, 0.004), Vector3(0.076, 0.083, 0.08), skin)
-	_box(Vector3(0.0, 0.445, 0.0), Vector3(0.28, 0.30, 0.18), _jacket)
-	_box(Vector3(0.0, 0.41, 0.092), Vector3(0.284, 0.038, 0.014), _material(STRAP))
-	_ellipsoid(Vector3(0.0, 0.716, 0.012), Vector3(0.223, 0.239, 0.223), skin)
-	if is_mara:
-		_ellipsoid(Vector3(0.0, 0.792, -0.018), Vector3(0.233, 0.139, 0.221), hair)
-		_ellipsoid(Vector3(-0.079, 0.678, -0.093), Vector3(0.105, 0.217, 0.105), hair)
-	elif is_rescuer:
-		_ellipsoid(Vector3(0.0, 0.809, 0.0), Vector3(0.24, 0.153, 0.229), _jacket.albedo_color.darkened(0.24))
-		_ellipsoid(Vector3(0.0, 0.657, 0.086), Vector3(0.146, 0.091, 0.067), hair)
-	else:
-		_ellipsoid(Vector3(0.0, 0.811, 0.0), Vector3(0.263, 0.159, 0.239), BOOTS)
-		_box(Vector3(0.0, 0.775, 0.067), Vector3(0.25, 0.029, 0.169), _material(BOOTS))
-	for side in [-1.0, 1.0]:
-		_ellipsoid(Vector3(side * 0.044, 0.727, 0.116), Vector3(0.021, 0.022, 0.019), BOOTS)
-
-
-func _build_dog() -> void:
-	_ellipsoid(Vector3(-0.035, 0.34, 0.0), Vector3(0.39, 0.255, 0.23), SCOUT_FUR)
-	_ellipsoid(Vector3(0.15, 0.478, 0.0), Vector3(0.23, 0.23, 0.203), SCOUT_FUR)
-	_ellipsoid(Vector3(0.252, 0.426, 0.009), Vector3(0.17, 0.116, 0.151), Color("#e9b87b"))
-	_ellipsoid(Vector3(0.324, 0.45, 0.012), Vector3(0.061, 0.061, 0.10), BOOTS)
-	_ellipsoid(Vector3(0.179, 0.515, 0.094), Vector3(0.03, 0.028, 0.019), BOOTS)
-	var ear := _box(Vector3(0.103, 0.597, 0.068), Vector3(0.078, 0.141, 0.061), _material(SCOUT_DARK))
-	ear.rotation.z = 0.26
-	var far_ear := _box(Vector3(0.18, 0.6, -0.055), Vector3(0.071, 0.122, 0.057), _material(SCOUT_DARK))
-	far_ear.rotation.z = -0.16
-	_box(Vector3(0.102, 0.378, 0.0), Vector3(0.056, 0.17, 0.202), _material(Color("#2f90a7")))
-	var tail := _box(Vector3(-0.258, 0.413, 0.0), Vector3(0.172, 0.055, 0.065), _material(SCOUT_DARK))
-	tail.rotation.z = -0.47
-	for depth in [-0.073, 0.073]:
-		for x in [-0.16, 0.082]:
-			_legs.append(_box(Vector3(x, 0.158, depth), Vector3(0.077, 0.26, 0.079), _material(SCOUT_DARK)))
-
-
-func _material(color: Color) -> StandardMaterial3D:
-	var material := StandardMaterial3D.new()
-	material.albedo_color = color
-	material.roughness = 0.86
-	return material
-
-
-func _box(center: Vector3, size: Vector3, material: Material) -> MeshInstance3D:
-	var mesh := BoxMesh.new()
-	mesh.size = size
-	var instance := MeshInstance3D.new()
-	instance.mesh = mesh
-	instance.material_override = material
-	instance.position = center
-	add_child(instance)
-	return instance
-
-
-func _ellipsoid(center: Vector3, size: Vector3, color: Color) -> void:
-	var mesh := SphereMesh.new()
-	mesh.radial_segments = 12
-	mesh.rings = 6
-	var instance := MeshInstance3D.new()
-	instance.mesh = mesh
-	instance.material_override = _material(color)
-	instance.position = center
-	instance.scale = size
-	add_child(instance)
+func hurt_animation() -> void:
+	_hurt_time = 0.55

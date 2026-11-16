@@ -56,12 +56,22 @@ func _check_controls() -> void:
 	app.set("settings_path", "user://aim_check_%d.cfg" % OS.get_process_id())
 	root.add_child(app)
 	await process_frame
+	_expect(app.get_node("ArenaBackdrop/CartoonBackdrop").mouse_filter == Control.MOUSE_FILTER_IGNORE, "Decorative backdrop must not intercept drag firing.")
 	_click(app.get_node("%MatchButton"))
 	await physics_frame
 	var arena := app.get_node("MatchArena") as MatchArena
 	var game := arena.simulation
 	var guide := arena.trajectory_guide
 	var power := app.get_node("%MatchPower") as ProgressBar
+	var zoom_hint := app.get_node("Interface/MatchHud/ZoomHint") as Label
+	_expect(zoom_hint.is_visible_in_tree() and zoom_hint.mouse_filter == Control.MOUSE_FILTER_IGNORE,
+		"Visible zoom instructions do not intercept firing.")
+	_expect(arena.camera.fov < 27.0, "The battle opens closer to the player characters.")
+	var opening_transform := arena.camera.transform
+	for unit in game.units:
+		if unit.team == 0:
+			var screen_point := arena.camera.unproject_position(Vector3(unit.feet.x, unit.feet.y + 0.5, 0))
+			_expect(Rect2(30, 180, 1220, 400).has_point(screen_point), "Opening view keeps each player character clear of the HUD.")
 	_expect(not paused and game.shot == null, "The click starting a match does not fire a shot.")
 	var point := Vector2(620.0, 280.0)
 	var strong_pull := point + Vector2(205.0, 115.0)
@@ -69,6 +79,29 @@ func _check_controls() -> void:
 	_mouse_button(point, true)
 	_mouse_button(point + Vector2.ONE, false)
 	_expect(game.shot == null, "A stationary click inside the dead zone does not fire.")
+
+	_mouse_button(point, true)
+	_mouse_motion(strong_pull)
+	var old_fov := arena.camera.fov
+	var wheel := InputEventMouseButton.new()
+	wheel.button_index = MOUSE_BUTTON_WHEEL_UP
+	wheel.pressed = true
+	_send(wheel.duplicate())
+	_expect(arena.camera.fov == old_fov, "Camera zoom freezes during a drag.")
+	var cancel := InputEventMouseButton.new()
+	cancel.button_index = MOUSE_BUTTON_RIGHT
+	cancel.pressed = true
+	_send(cancel)
+	_mouse_button(strong_pull, false)
+	_expect(game.shot == null and not arena._aim_controls.is_dragging(), "Right-click cancels without firing on release.")
+	_send(wheel.duplicate())
+	_expect(arena.camera.fov < old_fov, "Wheel zoom works outside a drag.")
+	wheel.button_index = MOUSE_BUTTON_WHEEL_DOWN
+	_send(wheel.duplicate())
+	_expect(arena.camera.fov == old_fov, "Scrolling down zooms back out.")
+	_send(wheel.duplicate())
+	_tap(KEY_HOME)
+	_expect(arena.camera.fov == old_fov and arena.camera.transform == opening_transform, "Home restores the closer opening view.")
 
 	_mouse_button(point, true)
 	_mouse_motion(strong_pull)
@@ -133,6 +166,13 @@ func _check_controls() -> void:
 	await physics_frame
 	await physics_frame
 	_expect(_visible_dots(lab.trajectory_guide) == 20, "The terrain lab previews the 20-dot tier.")
+	app._start_match()
+	await physics_frame
+	_tap(KEY_3)
+	_mouse_button(point,true)
+	_mouse_motion(strong_pull)
+	_mouse_button(strong_pull,false)
+	_expect(arena.simulation.pellet_traces.size() == 10 and arena.simulation.phase == MatchSimulation.Phase.RESOLVING, "Mouse drag/release fires the selected shotgun and ends the action.")
 	app.free()
 
 
