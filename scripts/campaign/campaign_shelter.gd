@@ -29,8 +29,8 @@ func enter(run: CampaignRun) -> void:
 		crew.remove_child(actor)
 		actor.queue_free()
 	walker = _add_actor(CampaignRun.ROSTER[0], run.outfits[0], Vector3(-5.15, 0.0, 1.0))
-	var eli := _add_actor(CampaignRun.ROSTER[1], run.outfits[1], Vector3(1.9, 0.0, -0.35))
-	eli.pose(-1.0, 0.0, 0.0)
+	var nova := _add_actor(CampaignRun.ROSTER[1], run.outfits[1], Vector3(1.9, 0.0, -0.35))
+	nova.pose(-1.0, 0.0, 0.0)
 	if run.roster_size() == 3:
 		_add_actor(CampaignRun.ROSTER[2], 0, Vector3(2.8, 0.0, 0.2))
 	_facing = 1.0

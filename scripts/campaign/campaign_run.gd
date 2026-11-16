@@ -7,10 +7,10 @@ const OBJECTIVES := [
 	"Defeat both members of the salvage crew and secure the ferry.",
 ]
 const BRIEFINGS := [
-	"Mara finds Eli at the flooded ranger post. Before either can speak, a familiar bark comes from the far end of the bank. A salvage lookout has taken the road.\n\nMara: “I thought the river took you.”\nEli: “You know I always come back. Let's get Scout.”",
-	"Scout leads Mara and Eli to the old ferry landing. The salvage crew has cut the crossing. If the three can clear the dock, the stranded families will have a way out.\n\nEli: “Remember the summer we swam across?”\nMara: “I remember you promising we'd take the ferry next time.”",
+	"Miska finds Nova at the flooded ranger post. Before either can speak, a familiar bark comes from the far end of the bank. A salvage lookout has taken the road.\n\nMiska: “I thought the river took you.”\nNova: “You know I always come back. Let's get Scout.”",
+	"Scout leads Miska and Nova to the old ferry landing. The salvage crew has cut the crossing. If the three can clear the dock, the stranded families will have a way out.\n\nNova: “Remember the summer we swam across?”\nMiska: “I remember you promising we'd take the ferry next time.”",
 ]
-const ROSTER := ["Mara", "Eli", "Scout"]
+const ROSTER := ["Miska", "Nova", "Scout"]
 const OUTFITS := ["Natural coat", "Forest tint", "Warm tint"]
 const OUTFIT_COLORS := [Color("#267fa3"), Color("#42785e"), Color("#bf513f")]
 const CLEAR_REWARD := 2

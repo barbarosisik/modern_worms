@@ -37,3 +37,10 @@ Forward+ inspection captures cover home with/without Continue, settings, wardrob
 - Next larger work remains map surface/landmark refinement, mines, audio/reaction polish and species abilities. Final animation/weapon-pose polish remains open.
 
 All completed work integrates through its feature branch into development_branch. Main promotion remains manual.
+
+
+## 16 November — Miska/Nova and next visual delivery
+The leads are now Miska and Nova, both cats. The owner prefers the current UI direction; retain it.
+VISUAL_ADVANCEMENT_PLAN.md is the current detailed handoff: shelter composition/interaction first,
+then cat identity/animation, existing-map surfaces/landmarks, and combat/audio/UI polish.
+These packages are planned, not delivered. Campaign expansion remains deferred.

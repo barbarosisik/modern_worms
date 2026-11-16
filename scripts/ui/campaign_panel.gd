@@ -38,7 +38,7 @@ func _ready() -> void:
 
 func open_wardrobe(run: CampaignRun) -> void:
 	_prepare("SIGNAL FIRES  /  NEW STORY", "Meet the rescuers")
-	_body.text = "Mara and Eli return to their flooded valley together. Mara is a cat and Eli is a dog. Choose their coat styles before the first mission. A new story starts with fresh progress and skills."
+	_body.text = "Miska and Nova return to their flooded valley together. Miska and Nova are two cats. Choose their coat styles before the first mission. A new story starts with fresh progress and skills."
 	_preview.show()
 	for i in range(_models.size()):
 		_models[i].visible = i < 2

@@ -24,8 +24,8 @@ var _rest_position := Vector3.ZERO
 
 func _init(character: String, outfit: int = 0) -> void:
 	_character = character
-	var source := CAT if character == "Mara" else (DOG if character in ["Eli", "Scout"] else WOLF)
-	var species := "maple-the-cat" if character == "Mara" else ("ollie-the-terrier" if character in ["Eli", "Scout"] else "ziggy-the-wolf")
+	var source := CAT if character in ["Miska", "Nova"] else (DOG if character == "Scout" else WOLF)
+	var species := "maple-the-cat" if character in ["Miska", "Nova"] else ("ollie-the-terrier" if character == "Scout" else "ziggy-the-wolf")
 	var path := "res://assets/local_plumberry/" + species + ".glb"
 	_cartoon = ResourceLoader.exists(path)
 	_model = (load(path) as PackedScene).instantiate() if _cartoon else source.instantiate()
@@ -70,9 +70,9 @@ func _ready() -> void:
 	# Measured from the imported idle poses in Forward+. Cached so headless
 	# tests and rendered play use identical placement without GPU skin baking.
 	var bounds := AABB(Vector3(-5.559528, -0.019996, -1.462579), Vector3(9.979425, 5.305872, 2.215549))
-	if _character == "Mara":
+	if _character in ["Miska", "Nova"]:
 		bounds = AABB(Vector3(-2.44106, -0.011576, -0.712004), Vector3(5.675112, 4.43445, 1.42404))
-	elif _character in ["Eli", "Scout"]:
+	elif _character == "Scout":
 		bounds = AABB(Vector3(-3.206179, -0.0651, -1.493581), Vector3(6.904972, 4.383379, 2.334721))
 	if _cartoon:
 		bounds = _bounds(_model, Transform3D.IDENTITY)
