@@ -419,7 +419,7 @@ func _rebuild_unit_views() -> void:
 	_unit_labels.clear()
 	for unit in simulation.units:
 		var team_color := BLUE if unit.team == 0 else ORANGE
-		var identity := unit.display_name if not unit.display_name.is_empty() else (("Mara" if unit.number == 1 else "Eli") if unit.team == 0 else "Raider")
+		var identity := unit.display_name if not unit.display_name.is_empty() else (("Miska" if unit.number == 1 else "Nova") if unit.team == 0 else "Raider")
 		var body := CampaignActor.new(identity, unit.outfit)
 		add_child(body)
 		_unit_views.append(body)

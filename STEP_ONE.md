@@ -103,3 +103,10 @@ Still pending: authored environment landmarks and finer surfaces, camera/readabi
 ## 16 November — clubhouse UI checkpoint
 
 See UI_ART_DIRECTION.md for the implemented menu/HUD/shelter standard, stronger distant-background tint, licensed sources and validation. Preserve this standard for future UI. Map and campaign scope from the owner's earlier revision remains in effect.
+
+
+## 16 November — Miska/Nova and next visual delivery
+The leads are now Miska and Nova, both cats. The owner prefers the current UI direction; retain it.
+VISUAL_ADVANCEMENT_PLAN.md is the current detailed handoff: shelter composition/interaction first,
+then cat identity/animation, existing-map surfaces/landmarks, and combat/audio/UI polish.
+These packages are planned, not delivered. Campaign expansion remains deferred.

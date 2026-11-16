@@ -204,7 +204,7 @@ func _refresh_shelter_hud(station: int) -> void:
 	]
 	%ShelterStory.text = (
 		"Both available missions complete. More chapters are planned." if campaign.finished()
-		else "Eli: Scout's safe. Let's get our gear before we take the ferry."
+		else "Nova: Scout's safe. Let's get our gear before we take the ferry."
 	)
 	var action := %StationAction as Button
 	action.disabled = station == CampaignShelter.Station.NONE
@@ -256,7 +256,7 @@ func _show_mission_result(winner: int, detail: Label, next: Button) -> void:
 	if campaign.complete(_mission_index, collected):
 		_save_campaign_checkpoint()
 	%ResultTitle.text = "Scout is safe" if _mission_index == 0 else "Chapter cleared"
-	detail.text = "Scout joins Mara and Eli in the turn queue." if _mission_index == 0 else (
+	detail.text = "Scout joins Miska and Nova in the turn queue." if _mission_index == 0 else (
 		"The ferry is secure. The valley has a route out, and the crew can follow the relay into the pines."
 	)
 	detail.text += "\n\nSupplies banked   +%d" % (CampaignRun.CLEAR_REWARD + collected)

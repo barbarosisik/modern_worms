@@ -30,7 +30,7 @@ func _check_rescue_order_and_roster() -> void:
 	game.reset(CampaignMission.new(0, run))
 	game.units[2].health = 0
 	_pass(game)
-	_expect(game.phase == MatchSimulation.Phase.ACTIVE and game.active_unit().display_name == "Eli",
+	_expect(game.phase == MatchSimulation.Phase.ACTIVE and game.active_unit().display_name == "Nova",
 		"The lookout can be cleared first and the player still gets a rescue turn.")
 	for frame in range(240):
 		game.step(STEP, 1.0)
@@ -49,18 +49,18 @@ func _check_rescue_order_and_roster() -> void:
 	for turn in range(4):
 		_pass(game)
 		order.append(game.active_unit().display_name)
-	_expect(order == ["Mara", "Rigger", "Eli", "Foreman", "Scout"], "Scout takes the third player turn.")
+	_expect(order == ["Miska", "Rigger", "Nova", "Foreman", "Scout"], "Scout takes the third player turn.")
 	game.units[0].health = 0
 	_pass(game)
 	_pass(game)
-	_expect(game.active_unit().display_name == "Eli", "The expanded roster skips an eliminated lead.")
+	_expect(game.active_unit().display_name == "Nova", "The expanded roster skips an eliminated lead.")
 
 
 func _check_campaign_flow() -> void:
 	var app := _open_app()
 	await process_frame
 	_press(app, "NewStory")
-	var wardrobe := app.find_child("MaraOutfit", true, false) as OptionButton
+	var wardrobe := app.find_child("MiskaOutfit", true, false) as OptionButton
 	wardrobe.select(2)
 	wardrobe.item_selected.emit(2)
 	_press(app, "BeginStory")
@@ -107,7 +107,7 @@ func _check_campaign_flow() -> void:
 	tabs.current_tab = 1
 	_press(app, "BuyGuide")
 	_expect(run.guide_tiers == PackedInt32Array([0, 1, 0]) and run.supplies == wallet - 2,
-		"Training Eli spends one supply and changes only Eli's guide.")
+		"Training Nova spends one supply and changes only Nova's guide.")
 
 	app.free()
 	app = _open_app()
