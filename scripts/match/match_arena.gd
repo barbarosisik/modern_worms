@@ -25,6 +25,12 @@ const COMPUTER_WAIT_TICKS := 12
 @onready var supply_sound: AudioStreamPlayer = $SupplySound
 @onready var _shot_material := projectile.mesh.surface_get_material(0) as StandardMaterial3D
 
+var _trail := MeshInstance3D.new()
+var _trail_points: Array[Vector3] = []
+var _tracer := MeshInstance3D.new()
+var _tracer_time := 0.0
+var _damage_labels: Array[Label3D] = []
+var _previous_health: Array[int] = []
 var _rocket_view: Node3D
 var _grenade_view: Node3D
 var battlefield := Battlefield.new()
@@ -50,6 +56,13 @@ var _computer_ticks := 0
 
 func _ready() -> void:
 	add_child(battlefield)
+	add_child(_tracer)
+	add_child(_trail)
+	var tracer_material := StandardMaterial3D.new()
+	tracer_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	tracer_material.albedo_color = Color("#ffdc82")
+	_tracer.material_override = tracer_material
+	_trail.material_override = tracer_material
 	var feedback_layer := CanvasLayer.new()
 	add_child(feedback_layer)
 	var feedback := preload("res://scripts/presentation/drag_feedback.gd").new()
@@ -96,6 +109,15 @@ func reset_match(against_computer: bool = false, mission: CampaignMission = null
 	battlefield.dress(simulation.terrain, mission.index if mission != null else 1)
 	terrain_mesh.rebuild_all(simulation.terrain)
 	_rebuild_unit_views()
+	_previous_health.clear()
+	for unit in simulation.units:
+		_previous_health.append(unit.health)
+	_tracer.hide()
+	_trail.hide()
+	_trail_points.clear()
+	for label in _damage_labels:
+		label.queue_free()
+	_damage_labels.clear()
 	_reset_aim()
 	_flash_time = 0.0
 	flash.hide()
@@ -148,6 +170,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_HOME and not _aim_controls.is_dragging():
 		camera.transform = _home_camera
 		camera.fov = 27.0
+	if event is InputEventKey and event.pressed and event.keycode == KEY_3:
+		select_weapon(ArtilleryShot.Weapon.SHOTGUN)
 	if event.is_action_pressed("unit_jump"):
 		_jump_requested = true
 	elif event.is_action_pressed("flip_facing"):
@@ -188,6 +212,14 @@ func supply_notice() -> String:
 
 
 func _physics_process(delta: float) -> void:
+	_tracer_time = maxf(0.0,_tracer_time-delta)
+	_tracer.visible = _tracer_time > 0.0
+	for label in _damage_labels.duplicate():
+		label.position.y += delta * 0.7
+		label.modulate.a -= delta * 0.75
+		if label.modulate.a <= 0.0:
+			_damage_labels.erase(label)
+			label.queue_free()
 	var previous_turn := simulation.turn_number
 	var previous_phase := simulation.phase
 	var movement := 0.0
@@ -239,6 +271,19 @@ func _fire_current_shot() -> void:
 	if simulation.fire(_angle, _power, _weapon):
 		(_unit_views[simulation.turn_index] as CampaignActor).fire_animation()
 		launch_sound.play()
+		if _weapon == ArtilleryShot.Weapon.SHOTGUN:
+			var lines := ImmediateMesh.new()
+			lines.surface_begin(Mesh.PRIMITIVE_LINES)
+			for point in simulation.pellet_traces:
+				lines.surface_add_vertex(Vector3(point.x,point.y,0.7))
+			lines.surface_end()
+			_tracer.mesh = lines
+			_tracer.show()
+			_tracer_time = 0.22
+			if simulation.collected_supply_team >= 0:
+				_supply_notice_team = simulation.collected_supply_team
+				_supply_notice_time = 1.6
+				supply_sound.play()
 	cancel_input()
 
 
@@ -294,8 +339,7 @@ func _begin_computer_aim() -> void:
 
 
 func _present_blast() -> void:
-	for chunk in simulation.dirty_chunks:
-		terrain_mesh.rebuild_chunk(simulation.terrain, chunk)
+	terrain_mesh.rebuild_dirty(simulation.terrain, simulation.dirty_chunks)
 	battlefield.update_support(simulation.terrain)
 	flash.position = _in_world(simulation.last_blast)
 	_flash_time = FLASH_DURATION
@@ -350,6 +394,14 @@ func _refresh_view(delta: float = 0.0) -> void:
 	var can_aim := simulation.phase == MatchSimulation.Phase.ACTIVE and active.alive()
 	for i in range(simulation.units.size()):
 		var unit := simulation.units[i]
+		if i < _previous_health.size() and unit.health < _previous_health[i]:
+			(_unit_views[i] as CampaignActor).hurt_animation()
+			var damage := _create_label(Color("#ffcf75"))
+			damage.text = "-%d" % (_previous_health[i]-unit.health)
+			damage.position = _in_world(unit.feet) + Vector3(0,1.7,0.8)
+			add_child(damage)
+			_damage_labels.append(damage)
+			_previous_health[i] = unit.health
 		var body := _unit_views[i]
 		var label := _unit_labels[i]
 		body.visible = unit.alive()
@@ -382,6 +434,20 @@ func _refresh_view(delta: float = 0.0) -> void:
 	if supply_view.visible:
 		supply_view.position = _in_world(simulation.supply_position)
 	projectile.visible = simulation.shot != null
+	_trail.visible = projectile.visible
+	if projectile.visible:
+		_trail_points.append(_in_world(simulation.shot.position) + Vector3(0,0,0.7))
+		if _trail_points.size() > 18:
+			_trail_points.pop_front()
+		if _trail_points.size() > 1:
+			var trail_mesh := ImmediateMesh.new()
+			trail_mesh.surface_begin(Mesh.PRIMITIVE_LINE_STRIP)
+			for point in _trail_points:
+				trail_mesh.surface_add_vertex(point)
+			trail_mesh.surface_end()
+			_trail.mesh = trail_mesh
+	else:
+		_trail_points.clear()
 	if simulation.shot != null:
 		projectile.position = _in_world(simulation.shot.position)
 		_rocket_view.visible = simulation.shot.weapon == ArtilleryShot.Weapon.ROCKET

@@ -121,3 +121,12 @@ func _contains(cell: Vector2i) -> bool:
 func _mark_chunk(changed: Dictionary[Vector2i, bool], cell: Vector2i) -> void:
 	if _contains(cell):
 		changed[Vector2i(floori(float(cell.x) / CHUNK_SIZE), floori(float(cell.y) / CHUNK_SIZE))] = true
+
+
+func fill_rounded_rect(rect: Rect2i, radius: int = 7) -> void:
+	var r := mini(radius, mini(rect.size.x,rect.size.y) / 2)
+	for y in range(rect.position.y, rect.end.y):
+		for x in range(rect.position.x, rect.end.x):
+			var centre := Vector2(clampf(x + 0.5, rect.position.x + r, rect.end.x - r), clampf(y + 0.5, rect.position.y + r, rect.end.y - r))
+			if Vector2(x + 0.5,y + 0.5).distance_to(centre) <= r:
+				fill_rect(Rect2i(x,y,1,1))

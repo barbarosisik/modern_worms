@@ -13,6 +13,8 @@ var _character := ""
 var _weapon_pivot := Node3D.new()
 var _launcher: Node3D
 var _grenade: Node3D
+var _shotgun: Node3D
+var _hurt_time := 0.0
 var _idle := ""
 var _walk := ""
 var _shot_time := 0.0
@@ -51,6 +53,11 @@ func _init(character: String, outfit: int = 0) -> void:
 	_grenade.scale = Vector3.ONE * 0.65
 	_grenade.position.x = 0.22
 	_weapon_pivot.add_child(_grenade)
+	_shotgun = preload("res://assets/kenney/weapons/blaster-n.glb").instantiate()
+	_shotgun.rotation.y = -PI / 2.0
+	_shotgun.scale = Vector3.ONE * 0.9
+	_shotgun.position.x = 0.22
+	_weapon_pivot.add_child(_shotgun)
 	_weapon_pivot.hide()
 	pose(1.0, 0.0, 0.0)
 
@@ -90,6 +97,7 @@ func set_outfit(outfit: int) -> void:
 
 func pose(facing: float, speed: float, delta: float, _grounded: bool = true) -> void:
 	rotation.y = (1.0 if facing > 0.0 else -1.0) * 0.9 if _cartoon else (0.0 if facing > 0.0 else PI)
+	_hurt_time = maxf(0.0,_hurt_time-delta)
 	_shot_time = maxf(0.0, _shot_time - delta)
 	_pose_time += delta
 	if is_node_ready():
@@ -104,15 +112,19 @@ func pose(facing: float, speed: float, delta: float, _grounded: bool = true) -> 
 		var clip := _walk if absf(speed) > 0.1 and not _walk.is_empty() else _idle
 		if _cartoon and not _grounded and _animation.has_animation("jump"):
 			clip = "jump"
+		if _hurt_time > 0.0 and _animation.has_animation("pain"):
+			clip = "pain"
 		if not clip.is_empty() and _animation.current_animation != clip:
 			_animation.play(clip, 0.15)
 
 func aim(facing: float, angle: float, weapon: ArtilleryShot.Weapon, active: bool) -> void:
 	_weapon_pivot.visible = active or _shot_time > 0.0
 	_launcher.visible = weapon == ArtilleryShot.Weapon.ROCKET
-	_grenade.visible = not _launcher.visible
+	_grenade.visible = weapon == ArtilleryShot.Weapon.GRENADE
+	_shotgun.visible = weapon == ArtilleryShot.Weapon.SHOTGUN
 	_weapon_pivot.basis = Basis(Vector3.UP, -rotation.y) * Basis(Vector3.BACK, deg_to_rad(angle if facing > 0.0 else 180.0 - angle))
 	_launcher.position.x = 0.22 - _shot_time * 0.12
+	_shotgun.position.x = 0.22 - _shot_time * 0.18
 
 func fire_animation() -> void:
 	_shot_time = 0.5
@@ -130,3 +142,7 @@ static func _bounds(node: Node, parent_transform: Transform3D) -> AABB:
 		if box.has_volume():
 			result = result.merge(box) if result.has_volume() else box
 	return result
+
+
+func hurt_animation() -> void:
+	_hurt_time = 0.55

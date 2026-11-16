@@ -153,6 +153,13 @@ func _check_controls() -> void:
 	await physics_frame
 	await physics_frame
 	_expect(_visible_dots(lab.trajectory_guide) == 20, "The terrain lab previews the 20-dot tier.")
+	app._start_match()
+	await physics_frame
+	_tap(KEY_3)
+	_mouse_button(point,true)
+	_mouse_motion(strong_pull)
+	_mouse_button(strong_pull,false)
+	_expect(arena.simulation.pellet_traces.size() == 10 and arena.simulation.phase == MatchSimulation.Phase.RESOLVING, "Mouse drag/release fires the selected shotgun and ends the action.")
 	app.free()
 
 

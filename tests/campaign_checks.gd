@@ -77,7 +77,7 @@ func _check_campaign_flow() -> void:
 	_expect(game.rescued and game.phase == MatchSimulation.Phase.ACTIVE, "Moving through the marker rescues Scout.")
 	await _hold(KEY_D, 22)
 	await _frames(9)
-	_drag_shot(arena, 1.0, 72.0, 0.32, ArtilleryShot.Weapon.GRENADE)
+	_drag_shot(arena, 1.0, 74.0, 0.4, ArtilleryShot.Weapon.GRENADE)
 	await _wait_for_result(app, 540)
 	_expect(game.winner == 0 and run.cleared == 1 and run.supplies >= CampaignRun.CLEAR_REWARD,
 		"A real grenade clears the lookout and banks the first mission reward.")
@@ -181,7 +181,7 @@ func _play_ferry(arena: MatchArena) -> void:
 
 
 func _drag_shot(arena: MatchArena, facing: float, angle: float, power: float, weapon: ArtilleryShot.Weapon) -> void:
-	_tap(KEY_1 if weapon == ArtilleryShot.Weapon.ROCKET else KEY_2)
+	_tap([KEY_1,KEY_2,KEY_3][weapon])
 	var target := Vector3(12.5, 8.5, 0.0)
 	var radians := deg_to_rad(angle)
 	var direction := Vector3(cos(radians) * facing, sin(radians), 0.0)

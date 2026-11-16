@@ -2,6 +2,7 @@ class_name Battlefield
 extends Node3D
 
 const NATURE := "res://assets/kenney/nature/"
+var _rounded_meshes: Dictionary[Mesh, ArrayMesh] = {}
 var _dressing := Node3D.new()
 var _anchors: Array[Dictionary] = []
 
@@ -11,9 +12,9 @@ func _ready() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 417
 	for layer in range(2):
-		for i in range(25):
+		for i in range(14):
 			var tree := add_asset("tree_oak",
-				Vector3(-14.0 + i * 2.6, 0.0, -21.0 + layer * 7.0), Vector3.ONE * rng.randf_range(3.8, 6.0))
+				Vector3(-20.0 + i * 5.0, 0.0, -30.0 + layer * 9.0), Vector3.ONE * rng.randf_range(3.4, 5.2))
 			_tint(tree, Color("#82b9aa") if layer == 0 else Color("#50a37a"))
 	var water := MeshInstance3D.new()
 	var plane := PlaneMesh.new()
@@ -73,14 +74,7 @@ func add_asset(asset: String, point: Vector3, dimensions: Vector3, parent: Node3
 	for part in model.find_children("*", "MeshInstance3D", true, false):
 		if asset != "tree_oak":
 			continue
-		var smooth_mesh := ArrayMesh.new()
-		for surface in range(part.mesh.get_surface_count()):
-			var tool := SurfaceTool.new()
-			tool.create_from(part.mesh, surface)
-			tool.set_smooth_group(0)
-			tool.generate_normals()
-			tool.commit(smooth_mesh)
-		part.mesh = smooth_mesh
+		part.mesh = _round_model(part.mesh)
 	model.position = point
 	model.scale = dimensions
 	return model
@@ -96,3 +90,63 @@ func _tint(node: Node3D, color: Color) -> void:
 	for mesh in node.find_children("*", "MeshInstance3D", true, false):
 		mesh.material_override = material
 		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
+# Derive a softer silhouette from the licensed source mesh, not just smooth lighting.
+func _round_model(source: Mesh) -> ArrayMesh:
+	if _rounded_meshes.has(source):
+		return _rounded_meshes[source]
+	var output := ArrayMesh.new()
+	for surface in range(source.get_surface_count()):
+		var arrays := source.surface_get_arrays(surface)
+		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+		var points: Array[Vector3] = []
+		var ids: Dictionary[Vector3, int] = {}
+		var faces: Array[Vector3i] = []
+		for i in range(0,indices.size(),3):
+			var face := Vector3i()
+			for j in range(3):
+				var vertex := vertices[indices[i+j]].snapped(Vector3.ONE * 0.0001)
+				if not ids.has(vertex):
+					ids[vertex] = points.size()
+					points.append(vertex)
+				face[j] = ids[vertex]
+			faces.append(face)
+		for iteration in range(2):
+			var edges: Dictionary[Vector2i, int] = {}
+			var divided: Array[Vector3i] = []
+			for face in faces:
+				var mids := Vector3i()
+				for j in range(3):
+					var a := face[j]
+					var b := face[(j+1)%3]
+					var key := Vector2i(mini(a,b),maxi(a,b))
+					if not edges.has(key):
+						edges[key] = points.size()
+						points.append((points[a]+points[b])*0.5)
+					mids[j] = edges[key]
+				divided.append_array([Vector3i(face.x,mids.x,mids.z),Vector3i(mids.x,face.y,mids.y),Vector3i(mids.z,mids.y,face.z),Vector3i(mids.x,mids.y,mids.z)])
+			var neighbours: Array[Dictionary] = []
+			for point in points: neighbours.append({})
+			for face in divided:
+				for j in range(3):
+					neighbours[face[j]][face[(j+1)%3]] = true
+					neighbours[face[j]][face[(j+2)%3]] = true
+			var smoothed := points.duplicate()
+			for i in range(points.size()):
+				var sum := Vector3.ZERO
+				for index in neighbours[i]: sum += points[index]
+				if not neighbours[i].is_empty():
+					smoothed[i] = points[i].lerp(sum / neighbours[i].size(),0.45)
+			points = smoothed
+			faces = divided
+		var tool := SurfaceTool.new()
+		tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+		tool.set_material(source.surface_get_material(surface))
+		for face in faces:
+			for i in range(3): tool.add_vertex(points[face[i]])
+		tool.generate_normals()
+		tool.commit(output)
+	_rounded_meshes[source] = output
+	return output

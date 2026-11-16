@@ -2,7 +2,8 @@ class_name ArtilleryShot
 extends RefCounted
 
 enum Result { FLYING, IMPACT, ESCAPED }
-enum Weapon { ROCKET, GRENADE }
+enum Weapon { ROCKET, GRENADE, SHOTGUN }
+const WEAPON_NAMES := ["Rocket", "Grenade", "Shotgun"]
 
 const GRAVITY := 4.0
 const FLIGHT_LIMIT := 6.0
@@ -21,6 +22,8 @@ var age := 0.0
 var launch_offset := Vector2.ZERO
 var ignore_center := Vector2.INF
 var _resting := false
+var travel_limit := INF
+var travelled := 0.0
 
 
 func _init(muzzle: Vector2, launch_velocity: Vector2, kind: Weapon = Weapon.ROCKET) -> void:
@@ -34,8 +37,11 @@ func step(delta: float, terrain: TerrainGrid, targets := PackedVector2Array()) -
 	if not _resting:
 		velocity += Vector2(wind, -gravity) * delta
 		var next_position := position + velocity * delta + launch_offset
+		if travelled + position.distance_to(next_position) > travel_limit:
+			next_position = position.move_toward(next_position, maxf(0.0, travel_limit - travelled))
+		travelled += position.distance_to(next_position)
 		var contact := terrain.sweep(position, next_position)
-		if weapon == Weapon.ROCKET:
+		if weapon in [Weapon.ROCKET, Weapon.SHOTGUN]:
 			var actor_hit := _first_actor_hit(next_position, targets)
 			if actor_hit != Vector2.INF and (
 				contact == null or position.distance_squared_to(actor_hit) < position.distance_squared_to(contact.point)
@@ -51,7 +57,7 @@ func step(delta: float, terrain: TerrainGrid, targets := PackedVector2Array()) -
 			position = next_position
 		launch_offset = Vector2.ZERO
 		ignore_center = Vector2.INF
-	if not bounds.has_point(position) or age >= FLIGHT_LIMIT:
+	if not bounds.has_point(position) or age >= FLIGHT_LIMIT or travelled >= travel_limit:
 		return Result.ESCAPED
 	if weapon == Weapon.GRENADE and age >= FUSE_SECONDS:
 		return Result.IMPACT

@@ -31,6 +31,7 @@ const CONFIG_SECTION := "options"
 @onready var fullscreen: CheckButton = %Fullscreen
 @onready var save_status: Label = %SaveStatus
 
+var _weapon_buttons: Array[Button] = []
 var _screen := Screen.HOME
 var _active_game := Screen.LAB
 var _return_screen := Screen.HOME
@@ -385,7 +386,10 @@ func _update_match_hud(
 	var wind := "Calm" if is_zero_approx(state.wind) else ("%s %.1f" % [
 		"→" if state.wind > 0.0 else "←", absf(state.wind)
 	])
-	var weapon_name := "Rocket" if weapon == ArtilleryShot.Weapon.ROCKET else "Grenade"
+	for i in range(_weapon_buttons.size()):
+		_weapon_buttons[i].set_pressed_no_signal(i == weapon)
+		_weapon_buttons[i].disabled = arena.is_computer_turn() or state.phase != MatchSimulation.Phase.ACTIVE
+	var weapon_name: String = ArtilleryShot.WEAPON_NAMES[weapon]
 	%WeaponStatus.text = "%s  ·  Wind %s  ·  Aim %+.0f°" % [weapon_name, wind, angle]
 	var computer_status := arena.computer_status()
 	%MatchStatus.text = computer_status if not computer_status.is_empty() else state.message
@@ -433,10 +437,12 @@ func _install_match_actions() -> void:
 	var weapons := HBoxContainer.new()
 	weapons.position = Vector2(26, 110)
 	match_hud.add_child(weapons)
-	for i in range(2):
+	for i in range(3):
 		var button := Button.new()
-		button.text = ["1 - Rocket", "2 - Grenade"][i]
+		button.text = ["1 - Rocket", "2 - Grenade", "3 - Shotgun"][i]
 		button.custom_minimum_size = Vector2(140, 42)
-		button.tooltip_text = ["Explodes on contact. Direct shots and terrain carving.", "Bounces before exploding. Lob it behind cover."][i]
+		button.tooltip_text = ["Explodes on contact. Direct shots and terrain carving.", "Bounces before exploding. Lob it behind cover.", "Five pellets. Short range; cover blocks shots. Pull further to tighten spread."][i]
+		button.toggle_mode = true
+		_weapon_buttons.append(button)
 		weapons.add_child(button)
 		button.pressed.connect(arena.select_weapon.bind(i))

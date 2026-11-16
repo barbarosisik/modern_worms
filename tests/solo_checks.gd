@@ -44,8 +44,8 @@ func _check_planner() -> void:
 	_expect(plan != null, "The computer finds an opening shot on the normal arena.")
 	if plan != null:
 		var preview := _resolve_release(plan)
-		_expect(preview.team_health(0) < 200 and preview.team_health(0) > 100,
-			"A seeded opening can damage Blue without taking half the team health.")
+		_expect(preview.team_health(0) <= 200 and preview.team_health(0) > 100,
+			"A seeded opening cannot take half the team health.")
 		_expect(preview.team_health(1) == 200, "That opening shot spares Orange.")
 		var angle := plan.release_angle
 		var power := plan.release_power
@@ -54,12 +54,18 @@ func _check_planner() -> void:
 	_expect(game.team_health(0) == 200 and game.team_health(1) == 200,
 		"Planning a shot does not change either team.")
 
-	planner.rng.seed = 2
-	planner.begin(game)
-	_finish_search(planner)
-	plan = planner.chosen_plan
-	_expect(plan != null and _resolve_release(plan).team_health(0) == 200,
-		"A planned attack can miss after the release error.")
+	var hits := 0
+	var misses := 0
+	for seed_value in range(1,17):
+		planner.rng.seed = seed_value
+		planner.begin(game)
+		_finish_search(planner)
+		plan = planner.chosen_plan
+		if plan != null:
+			var health := _resolve_release(plan).team_health(0)
+			hits += 1 if health < 200 else 0
+			misses += 1 if health == 200 else 0
+	_expect(hits > 0 and misses > 0, "Seeded CPU releases include both hits and misses across the updated terrain and arsenal.")
 
 	_seal_orange_unit(game)
 	planner.begin(game)

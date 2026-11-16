@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode cull_disabled, diffuse_toon, specular_disabled;
+render_mode cull_disabled, shadows_disabled, diffuse_toon, specular_disabled;
 varying vec3 world_point;
 void vertex() { world_point = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
 void fragment() {

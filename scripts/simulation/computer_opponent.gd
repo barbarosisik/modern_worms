@@ -92,6 +92,7 @@ func begin(state: MatchSimulation) -> void:
 				for direction in site.directions:
 					_candidates.append(Plan.new(site, direction, angle, power, ArtilleryShot.Weapon.ROCKET))
 					_candidates.append(Plan.new(site, direction, angle, power, ArtilleryShot.Weapon.GRENADE))
+					_candidates.append(Plan.new(site, direction, angle, power, ArtilleryShot.Weapon.SHOTGUN))
 
 
 func advance() -> bool:
@@ -155,6 +156,18 @@ func _project_position(state: MatchSimulation, axis: float) -> FiringPosition:
 
 func _estimate(candidate: Plan) -> void:
 	var site := candidate.position
+	if candidate.weapon == ArtilleryShot.Weapon.SHOTGUN:
+		var preview := site.state.snapshot_active_turn()
+		preview.active_unit().facing = candidate.facing
+		preview.fire(candidate.angle,candidate.power,candidate.weapon)
+		var team := preview.active_unit().team
+		var score := 0.0
+		for i in range(preview.units.size()):
+			var damage := site.state.units[i].health-preview.units[i].health
+			score += damage if preview.units[i].team != team else -1.5 * damage
+		candidate.impact = preview.pellet_traces[5]
+		candidate.estimate = score
+		return
 	var shot := site.state.build_shot(candidate.angle, candidate.power, candidate.weapon, candidate.facing)
 	for tick in range(MAX_FLIGHT_TICKS):
 		var result := shot.step(STEP, site.state.terrain, site.centers)
