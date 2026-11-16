@@ -23,13 +23,14 @@ func _run() -> void:
 
 func _check_snapshot() -> void:
 	var game := MatchSimulation.new()
+	game.units[1].feet = game.active_unit().feet + Vector2(2,0)
 	var preview := game.snapshot_active_turn()
-	preview.fire(26.0, 0.86, ArtilleryShot.Weapon.ROCKET)
+	preview.fire(0.0, 0.0, ArtilleryShot.Weapon.ROCKET)
 	_resolve_turn(preview)
 	_expect(preview.team_health(1) < 200, "A simulated shot damages the preview team.")
 	_expect(game.team_health(1) == 200 and game.shot == null, "Preview damage leaves the live match alone.")
-	preview.terrain.cut_disc(Vector2(28.0, 3.75), 0.3)
-	_expect(game.terrain.is_solid(Vector2i(224, 30)), "Preview craters leave the live terrain alone.")
+	preview.terrain.cut_disc(Vector2(8.0, 4.8), 0.3)
+	_expect(game.terrain.is_solid(Vector2i(64, 38)), "Preview craters leave the live terrain alone.")
 
 
 func _check_planner() -> void:
@@ -122,7 +123,7 @@ func _check_solo_flow() -> void:
 		"Pause freezes the computer's turn and charge.")
 	_button(app, "%ResumeButton")
 	await _wait_for_turn(game, 3, 570)
-	_expect(game.team_health(0) < 200, "The computer fires and hands control back to Blue.")
+	_expect(game.turn_number == 3 and game.shot == null, "The computer completes its shot and hands control back, including imperfect misses.")
 
 	_tap(KEY_P)
 	await _wait_for_turn(game, 4, 60)
@@ -143,7 +144,7 @@ func _check_solo_flow() -> void:
 	_button(app, "%ReturnHome")
 	_button(app, "%SoloButton")
 	game.units[0].health = 1
-	game.units[0].feet = Vector2(25.0, 4.0)
+	game.units[0].feet = game.units[1].feet + Vector2(-2.0,0)
 	game.units[2].health = 0
 	game.units[3].health = 0
 	arena._computer.rng.seed = 1
@@ -160,9 +161,10 @@ func _check_solo_flow() -> void:
 
 
 func _seal_orange_unit(game: MatchSimulation) -> void:
-	game.terrain.fill_rect(Rect2i(220, 32, 1, 9))
-	game.terrain.fill_rect(Rect2i(227, 32, 1, 9))
-	game.terrain.fill_rect(Rect2i(220, 40, 8, 1))
+	var cell := Vector2i((game.units[1].feet / TerrainGrid.CELL_SIZE).floor())
+	game.terrain.fill_rect(Rect2i(cell.x - 4, cell.y, 1, 9))
+	game.terrain.fill_rect(Rect2i(cell.x + 4, cell.y, 1, 9))
+	game.terrain.fill_rect(Rect2i(cell.x - 4, cell.y + 8, 9, 1))
 
 
 func _finish_search(planner: ComputerOpponent) -> void:

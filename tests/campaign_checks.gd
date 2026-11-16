@@ -32,12 +32,12 @@ func _check_rescue_order_and_roster() -> void:
 	_pass(game)
 	_expect(game.phase == MatchSimulation.Phase.ACTIVE and game.active_unit().display_name == "Eli",
 		"The lookout can be cleared first and the player still gets a rescue turn.")
-	for frame in range(90):
+	for frame in range(240):
 		game.step(STEP, 1.0)
 	_expect(game.rescued and game.winner == 0, "Walking to Scout after clearing the lookout wins the mission.")
 
 	game.reset(CampaignMission.new(0, run))
-	game.terrain.cut_disc(Vector2(9.0, 2.38), 2.1)
+	game.terrain.cut_disc(game.rescue_target.feet - Vector2(0,2.5), 4.0)
 	for frame in range(100):
 		game.step(STEP)
 	_expect(not game.rescued and game.winner == 1 and not game.rescue_target.alive(),
@@ -72,15 +72,15 @@ func _check_campaign_flow() -> void:
 		"The new-story flow applies the outfit and starts the rescue against the computer.")
 	_expect(game.supply_position.distance_to(game.rescue_target.center()) >= SupplyPickup.UNIT_CLEARANCE,
 		"The supply marker leaves Scout's rescue area clear.")
-	await _hold(KEY_D, 90)
+	await _hold(KEY_D, 220)
 	await _frames(12)
 	_expect(game.rescued and game.phase == MatchSimulation.Phase.ACTIVE, "Moving through the marker rescues Scout.")
 	await _hold(KEY_D, 22)
 	await _frames(9)
-	_drag_shot(arena, 1.0, 74.0, 0.4, ArtilleryShot.Weapon.GRENADE)
+	await _play_ferry(arena)
 	await _wait_for_result(app, 540)
 	_expect(game.winner == 0 and run.cleared == 1 and run.supplies >= CampaignRun.CLEAR_REWARD,
-		"A real grenade clears the lookout and banks the first mission reward.")
+		"Real mouse-aimed shots clear the lookout and bank the first mission reward.")
 	if run.cleared != 1:
 		app.free()
 		return
@@ -157,7 +157,7 @@ func _play_ferry(arena: MatchArena) -> void:
 	driver.rng.seed = 3
 	driver.error_scale = 0.0
 	var game := arena.simulation
-	for turn in range(16):
+	for turn in range(32):
 		if game.phase == MatchSimulation.Phase.FINISHED:
 			return
 		if game.phase == MatchSimulation.Phase.ACTIVE and not arena.is_computer_turn():

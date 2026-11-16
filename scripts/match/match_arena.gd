@@ -122,7 +122,7 @@ func reset_match(against_computer: bool = false, mission: CampaignMission = null
 	camera.look_at(camera_focus)
 	camera.fov = START_CAMERA_FOV
 	_home_camera = camera.transform
-	battlefield.dress(simulation.terrain, mission.index if mission != null else 1)
+	battlefield.dress(simulation.terrain, mission.index + 3 if mission != null else skirmish_map, simulation.units)
 	terrain_mesh.rebuild_all(simulation.terrain)
 	_rebuild_unit_views()
 	_previous_health.clear()

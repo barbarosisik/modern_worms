@@ -1,5 +1,7 @@
 > **Current direction — 15 November 2026:** The owner chose an entirely animal cast. Human-character requirements below are superseded. Keep the two lead characters and rescue/progression structure, expressed through animals. See `STEP_ONE.md` for the implemented checkpoint and current delivery order. Wild Ones remains a reference, not the product name.
 
+> **Scope revision — 16 November 2026:** Improve the existing maps before extending the campaign. The ten-level story and third mission below remain a deferred vision, not the next delivery. Prioritize larger asymmetric landscapes, smoother terrain walking and meaningful cover/routes. See MAP_DESIGN.md and the latest PROJECT_LOG.md entries. Other weapon/presentation/ability goals remain planned.
+
 # Wild Ones-inspired MVP implementation plan
 
 Date: 10 November 2026

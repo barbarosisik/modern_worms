@@ -74,36 +74,13 @@ func reset(mission: CampaignMission = null, map_index: int = 0) -> void:
 
 func _set_up_skirmish(map_index: int = 0) -> void:
 	terrain = TerrainGrid.new()
-	terrain.fill_rounded_rect(Rect2i(8, 10, 72, 22))
-	terrain.fill_rounded_rect(Rect2i(92, 10, 72, 10))
-	terrain.fill_rounded_rect(Rect2i(176, 10, 72, 22))
-	terrain.fill_rounded_rect(Rect2i(119, 20, 14, 20))
+	BattleMaps.build(terrain, clampi(map_index, 0, 2))
 	units = [
-		MatchUnit.new(0, 1, Vector2(4.0, 4.0)),
-		MatchUnit.new(1, 1, Vector2(28.0, 4.0)),
-		MatchUnit.new(0, 2, Vector2(8.5, 4.0)),
-		MatchUnit.new(1, 2, Vector2(23.5, 4.0)),
+		MatchUnit.new(0, 1, Vector2(8.0, BattleMaps.surface_y(terrain, 8.0))),
+		MatchUnit.new(1, 1, Vector2(39.0, BattleMaps.surface_y(terrain, 39.0))),
+		MatchUnit.new(0, 2, Vector2(19.0, BattleMaps.surface_y(terrain, 19.0))),
+		MatchUnit.new(1, 2, Vector2(54.0, BattleMaps.surface_y(terrain, 54.0))),
 	]
-
-	if map_index > 0:
-		terrain = TerrainGrid.new()
-		for column in range(8, 248):
-			var height := 32
-			if map_index == 1:
-				height = 26 + roundi(18.0 * sin(float(column - 8) / 240.0 * PI))
-				if column in range(120, 136):
-					continue
-			else:
-				if column in range(82, 96) or column in range(160, 174):
-					continue
-				height = 32 if column < 82 or column >= 174 else 22
-			terrain.fill_rect(Rect2i(column, 7, 1, height - 7))
-		for unit in units:
-			var x := floori(unit.feet.x / TerrainGrid.CELL_SIZE)
-			for row in range(127, 0, -1):
-				if terrain.is_solid(Vector2i(x, row)):
-					unit.feet.y = (row + 1) * TerrainGrid.CELL_SIZE
-					break
 
 
 func active_unit() -> MatchUnit:
@@ -157,7 +134,7 @@ func build_shot(angle: float, power: float, weapon: ArtilleryShot.Weapon, facing
 		projectile.gravity = 0.0
 		projectile.wind = 0.0
 		projectile.travel_limit = 9.0
-	projectile.bounds = Rect2(-1.0, WATER_LEVEL, TerrainGrid.WORLD_SIZE.x + 2.0, 24.0)
+	projectile.bounds = Rect2(-1.0, WATER_LEVEL, TerrainGrid.WORLD_SIZE.x + 2.0, TerrainGrid.WORLD_SIZE.y + 8.0)
 	# Check the muzzle segment on the first tick, even when the unit is pressed against cover.
 	projectile.launch_offset = direction * 0.61
 	projectile.ignore_center = unit.center()

@@ -2,6 +2,8 @@
 
 Updated 2026-11-16. Wild Ones is a reference, not the final game name. This document complements WILD_ONES_MVP_PLAN.md and STEP_ONE.md; it does not replace the larger campaign plan.
 
+Owner revision, 16 November: defer campaign expansion and improve the existing maps first. MAP_DESIGN.md records the map references, larger layouts and walking changes delivered after this document's original checkpoint. Earlier requests for mission three are superseded for current development.
+
 ## Evidence and limits
 
 - [Team17's WMD development retrospective](https://www.team17.com/news/team17s-100-games-part-seventeen-2016-overcooked-worms-w-m-d-and-more): the developers describe returning to Armageddon's mechanical foundations while changing scale and presentation. They describe authored terrain pieces and templates rather than relying solely on a repeated texture and edge fringe. This supports an authored environment pipeline for our next art milestone.
@@ -55,11 +57,11 @@ No reference artwork has been copied into game assets. Scratch reference images 
 3. Distinguish weapon icons, status effects and supply types using shape as well as color.
 4. Play a complete match using only mouse aiming and on-screen weapon selection. Check pause, retry and settings in the same session.
 
-### D. Then expand campaign and roster abilities
+### D. Then deepen existing maps and roster abilities
 
-1. Third mission with a new rescue objective, a distinct landmark layout and a reliable shelter-to-next-mission transition.
+1. Playtest and tune routes, cover and pickups across the existing three skirmishes and two mission maps. Keep the existing rescue and shelter transitions working; do not add a third mission yet.
 2. One readable support ability per species before adding more species. Keep team upgrades and individual upgrades separate.
-3. Introduce mechanics gradually across the ten-level outline. Scale enemy decisions and resources rather than granting perfect aim.
+3. Keep the ten-level outline deferred until the owner resumes campaign expansion. Improve enemy decisions without granting perfect aim.
 4. Continue appearance selection, saved rescue state and new-run skill reset checks.
 
 ## Acceptance and branch workflow
