@@ -21,7 +21,8 @@ func _check_placement() -> void:
 		game._supply_rng.seed = seed
 		game.reset()
 		var site := game.supply_position
-		_expect(site.is_finite() and site.x >= 10.5 and site.x <= 21.5, "A supply spawns between opposing units.")
+		_expect(site.is_finite() and site.x >= game.units[2].feet.x + SupplyPickup.UNIT_CLEARANCE
+			and site.x <= game.units[1].feet.x - SupplyPickup.UNIT_CLEARANCE, "A supply spawns between opposing units.")
 		if site not in seen:
 			seen.append(site)
 	_expect(seen.size() > 1, "Different seeds choose different valid sites.")

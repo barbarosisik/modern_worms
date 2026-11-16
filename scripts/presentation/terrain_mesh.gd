@@ -11,8 +11,8 @@ func _ready() -> void:
 	_material.shader = preload("res://scripts/presentation/earth.gdshader")
 
 func rebuild_all(terrain: TerrainGrid) -> void:
-	for y in range(4):
-		for x in range(8):
+	for y in range(TerrainGrid.CHUNK_COUNT.y):
+		for x in range(TerrainGrid.CHUNK_COUNT.x):
 			rebuild_chunk(terrain, Vector2i(x,y))
 
 func rebuild_chunk(terrain: TerrainGrid, key: Vector2i) -> void:
@@ -20,8 +20,11 @@ func rebuild_chunk(terrain: TerrainGrid, key: Vector2i) -> void:
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var populated := false
 	var start := key * TerrainGrid.CHUNK_SIZE
-	for y in range(start.y - 1, start.y + TerrainGrid.CHUNK_SIZE - 1):
-		for x in range(start.x - 1, start.x + TerrainGrid.CHUNK_SIZE - 1):
+	var end := start + Vector2i.ONE * (TerrainGrid.CHUNK_SIZE - 1)
+	if key.x == TerrainGrid.CHUNK_COUNT.x - 1: end.x += 1
+	if key.y == TerrainGrid.CHUNK_COUNT.y - 1: end.y += 1
+	for y in range(start.y - 1, end.y):
+		for x in range(start.x - 1, end.x):
 			var cell := Vector2i(x,y)
 			var mask := 0
 			for i in range(4):
@@ -72,7 +75,7 @@ func rebuild_dirty(terrain: TerrainGrid, dirty: Array[Vector2i]) -> void:
 		for dy in range(-1,2):
 			for dx in range(-1,2):
 				var neighbour := key + Vector2i(dx,dy)
-				if neighbour.x >= 0 and neighbour.y >= 0 and neighbour.x < 8 and neighbour.y < 4:
+				if Rect2i(Vector2i.ZERO, TerrainGrid.CHUNK_COUNT).has_point(neighbour):
 					affected[neighbour] = true
 	for key in affected:
 		rebuild_chunk(terrain,key)

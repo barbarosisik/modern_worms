@@ -9,10 +9,11 @@ class Contact:
 		point = hit_point
 		normal = hit_normal
 
-const SIZE := Vector2i(256, 128)
+const SIZE := Vector2i(512, 192)
 const CELL_SIZE := 0.125
 const CHUNK_SIZE := 32
 const WORLD_SIZE := Vector2(SIZE) * CELL_SIZE
+const CHUNK_COUNT := SIZE / CHUNK_SIZE
 
 var _cells := PackedByteArray()
 
@@ -130,3 +131,28 @@ func fill_rounded_rect(rect: Rect2i, radius: int = 7) -> void:
 			var centre := Vector2(clampf(x + 0.5, rect.position.x + r, rect.end.x - r), clampf(y + 0.5, rect.position.y + r, rect.end.y - r))
 			if Vector2(x + 0.5,y + 0.5).distance_to(centre) <= r:
 				fill_rect(Rect2i(x,y,1,1))
+
+
+# Map construction uses smooth authored silhouettes; runtime destruction stays cell based.
+func fill_landmass(profile: PackedVector2Array, phase: float = 0.0) -> void:
+	var segment := 0
+	for column in range(maxi(0, floori(profile[0].x / CELL_SIZE)), mini(SIZE.x, ceili(profile[-1].x / CELL_SIZE))):
+		var x := (column + 0.5) * CELL_SIZE
+		while segment < profile.size() - 2 and x > profile[segment + 1].x:
+			segment += 1
+		var a := profile[segment]
+		var b := profile[segment + 1]
+		var t := clampf(inverse_lerp(a.x, b.x, x), 0, 1)
+		var top := lerpf(a.y, b.y, smoothstep(0, 1, t)) + sin(x * 1.4 + phase) * 0.06
+		var bottom := 1.2 + 0.25 * sin(x * 0.55 + phase) + 0.16 * sin(x * 1.1)
+		fill_rect(Rect2i(column, floori(bottom / CELL_SIZE), 1, maxi(0, roundi(top / CELL_SIZE) - floori(bottom / CELL_SIZE))))
+
+
+func carve_ellipse(center: Vector2, radii: Vector2) -> void:
+	var start := _world_cell(center - radii).max(Vector2i.ZERO)
+	var end := _world_cell(center + radii).min(SIZE - Vector2i.ONE)
+	for y in range(start.y, end.y + 1):
+		for x in range(start.x, end.x + 1):
+			var scaled := (((Vector2(x,y) + Vector2.ONE * 0.5) * CELL_SIZE) - center) / radii
+			if scaled.length_squared() <= 1.0:
+				_cells[y * SIZE.x + x] = 0

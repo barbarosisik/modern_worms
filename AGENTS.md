@@ -1,5 +1,7 @@
 # Repository workflow
 
+Current product scope (owner revision, 16 November 2026): enlarge and improve the existing three skirmish maps and two mission maps. Defer new campaign missions until the owner requests them. Mines, combat polish and animal abilities remain planned follow-up work.
+
 - Start descriptive feature/fix branches from the current `development_branch`.
 - Publish completed work on its task branch, then merge it into `development_branch` through a pull request after the relevant checks pass. Do not leave completed work only on a feature branch unless the owner explicitly requests that.
 - Verify the integrated `development_branch` and update `PROJECT_LOG.md` with the work, checks and remaining tasks.

@@ -50,7 +50,7 @@ func _run() -> void:
 		_motion(Vector2(100, 550))
 		_button(MOUSE_BUTTON_MIDDLE, end, false)
 	var limit := AimControls._point_on_plane(camera, Vector2(640, 360))
-	_expect(limit.distance_to(Vector2(32, 16)) < 0.001, "The view centre stops at the far map bounds: %s." % limit)
+	_expect(limit.distance_to(TerrainGrid.WORLD_SIZE) < 0.001, "The view centre stops at the far map bounds: %s." % limit)
 	for drag in range(4):
 		_button(MOUSE_BUTTON_MIDDLE, Vector2(100, 550), true)
 		_motion(Vector2(1100, 200))

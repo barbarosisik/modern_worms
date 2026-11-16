@@ -50,19 +50,28 @@ func _check_rotation_and_movement() -> void:
 
 func _check_weapons_and_results() -> void:
 	var game := MatchSimulation.new()
-	game.fire(26.0, 0.86, ArtilleryShot.Weapon.ROCKET)
+	var planner := ComputerOpponent.new()
+	planner.begin(game)
+	while not planner.advance(): pass
+	_expect(planner.chosen_plan != null, "The expanded battlefield offers a reachable opposing unit.")
+	if planner.chosen_plan != null:
+		var plan := planner.chosen_plan
+		game.active_unit().feet = plan.position.state.active_unit().feet
+		game.active_unit().facing = plan.facing
+		game.fire(plan.angle, plan.power, plan.weapon)
 	_advance_until_settled(game)
 	_expect(game.team_health(1) < 200, "An opening shot can reach Orange across the actual map.")
 	game.reset()
 	var enemy := game.units[1]
-	enemy.feet = Vector2(6.0, 4.0)
+	enemy.feet = game.active_unit().feet + Vector2(2.0,0)
 	var original := enemy.feet
+	var support := Vector2i((original / TerrainGrid.CELL_SIZE).floor()) - Vector2i(0,1)
 	_expect(game.fire(0.0, 0.0, ArtilleryShot.Weapon.ROCKET), "The first rocket launches.")
 	_expect(not game.fire(0.0, 0.0, ArtilleryShot.Weapon.ROCKET), "Cannot fire twice in one turn.")
 	_advance_until_settled(game)
 	_expect(enemy.health < MatchUnit.MAX_HEALTH, "The rocket damages an opposing unit.")
 	_expect(enemy.feet != original, "Damage also causes knockback.")
-	_expect(not game.terrain.is_solid(Vector2i(45, 30)), "The blast removes terrain.")
+	_expect(not game.terrain.is_solid(support), "The blast removes terrain beneath the target.")
 	_expect(game.turn_number == 2, "The next turn starts after the impact settles.")
 
 	var grenade := ArtilleryShot.new(Vector2(5.0, 5.0), Vector2(0.8, -2.0), ArtilleryShot.Weapon.GRENADE)
@@ -81,7 +90,7 @@ func _check_weapons_and_results() -> void:
 		"The grenade detonates after the fuse, including when it comes to rest.")
 
 	game.reset()
-	game.units[1].feet = Vector2(6.0, 4.0)
+	game.units[1].feet = game.active_unit().feet + Vector2(2.0,0)
 	game.units[1].health = 1
 	game.units[3].health = 0
 	game.fire(0.0, 0.0, ArtilleryShot.Weapon.ROCKET)
@@ -108,7 +117,7 @@ func _check_weapons_and_results() -> void:
 
 
 func _walk_off_outer_edge(game: MatchSimulation) -> void:
-	for tick in range(230):
+	for tick in range(500):
 		game.step(STEP, -1.0)
 		if game.phase != MatchSimulation.Phase.ACTIVE:
 			break
@@ -159,7 +168,7 @@ func _check_game_entry() -> void:
 	_tap(KEY_ESCAPE)
 	_button(app, "%ReturnHome")
 	_button(app, "%MatchButton")
-	game.units[1].feet = Vector2(6.0, 4.0)
+	game.units[1].feet = game.active_unit().feet + Vector2(2.0,0)
 	game.units[1].health = 1
 	game.units[3].health = 0
 	game.fire(0.0, 0.0, ArtilleryShot.Weapon.ROCKET)

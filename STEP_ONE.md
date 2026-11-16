@@ -1,5 +1,7 @@
 # Step one: a recognizable playable game
 
+> **Owner revision, 16 November 2026:** Campaign expansion is deferred. Improve and enlarge all existing maps first, with asymmetric natural terrain, tactical routes and automatic walking over small steps. The older mission-three delivery order below is superseded. See MAP_DESIGN.md for this checkpoint. Mines, combat polish and species abilities remain subsequent priorities. All completed work integrates into development_branch; main releases are manual.
+
 Approved to begin on 10 November 2026. Branch: `feature/stylized-first-playable`.
 Wild Ones is an experience reference, not the game's name. Signal Fires remains a working title.
 
