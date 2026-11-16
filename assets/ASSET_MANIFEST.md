@@ -24,3 +24,11 @@ Animal meshes retain their original vertex colors and surface materials. Idle-po
 ## Current cartoon direction
 
 The photographed surface maps above are unused experiments, retained only locally. Active terrain uses a cartoon shader. Upright cartoon characters are optional local Plumberry Plains Vol. 1 files: **not redistributed here**. See ../CARTOON_ASSET_SETUP.md for the creator, licensing and installation. Existing Quaternius quadrupeds are the redistributable fallback only.
+
+## 16 November 2026 — clubhouse and interface
+
+- `kenney/ui_adventure/`: selected 2× PNG panels, buttons, checkbox/arrow/progress pieces and pattern from Kenney's **UI Pack - Adventure 1.1**. [Creator's upload](https://opengameart.org/content/ui-pack-adventure); downloaded archive `kenney_ui-pack-adventure.zip`. CC0, original license included. Runtime nine-slice scaling and tinting are in `interface_skin.gd`.
+- `kenney/furniture/`: 15 selected original OBJ/MTL sources from Kenney's **Furniture Pack 1.0**: architectural wall/floor/window pieces, table, desk, chair, bookcase, books, lamps, plants, rug, bench, radio and coat rack. [Creator's upload](https://opengameart.org/content/furniture-kit); archive `kenney_furniturePack.zip`. CC0, original license included. Runtime sizing, material treatment and placement are in `clubhouse_decor.gd`.
+- `fonts/Fredoka.ttf`: unchanged variable font from [Google Fonts](https://github.com/google/fonts/tree/main/ofl/fredoka), font source Git blob `349b6ecef8a358ede29b7bf74a08196be5d71b25`. SIL OFL 1.1; copyright/license retained in `Fredoka-OFL.txt`. OpenType weights are selected at runtime.
+
+Kenney preview/sample images were inspected locally but are not included as game assets. The unrelated Plumberry no-source-redistribution rule remains unchanged; that directory stays ignored.

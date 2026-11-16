@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://bi3s7w74ey0w1"
+path="res://.godot/imported/pottedPlant.obj-0d521899cd6def3931a6b06f85c4c2b6.mesh"
+
+[deps]
+
+files=["res://.godot/imported/pottedPlant.obj-0d521899cd6def3931a6b06f85c4c2b6.mesh"]
+
+source_file="res://assets/kenney/furniture/pottedPlant.obj"
+dest_files=["res://.godot/imported/pottedPlant.obj-0d521899cd6def3931a6b06f85c4c2b6.mesh", "res://.godot/imported/pottedPlant.obj-0d521899cd6def3931a6b06f85c4c2b6.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

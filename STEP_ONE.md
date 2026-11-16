@@ -99,3 +99,7 @@ Reduced rocket/grenade blast radii after eight opening-turn probes exposed overl
 Validation: terrain_lab, terrain_contour, match, solo, aim, supply, campaign, skirmish_maps and shotgun suites passed. Rendered Forward+ battle inspected at 1280x720, including a controlled shotgun-hit fixture showing tracers and 33 damage. A 1920x1080 capture was generated; this does not constitute a full manual playthrough at both resolutions. Terrain tests compare dirty rebuilds to full rebuilds and check a crater stays visually open. Shotgun checks cover falloff, cover, range, allies, turn ownership and CPU snapshot isolation. Tests use isolated saves.
 
 Still pending: authored environment landmarks and finer surfaces, camera/readability polish, mine behavior, audio, complete character reactions, species abilities and mission three. Terrain grass is still grid-influenced; this is a measurable gameplay/presentation checkpoint, not final art or the complete MVP. Next delivery is detailed in REFERENCE_DESIGN_RESEARCH.md. Restricted local model sources remain excluded from publication. Feature branch only; main unchanged.
+
+## 16 November — clubhouse UI checkpoint
+
+See UI_ART_DIRECTION.md for the implemented menu/HUD/shelter standard, stronger distant-background tint, licensed sources and validation. Preserve this standard for future UI. Map and campaign scope from the owner's earlier revision remains in effect.
