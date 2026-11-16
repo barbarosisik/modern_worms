@@ -36,6 +36,8 @@ var _rocket_view: Node3D
 var _grenade_view: Node3D
 var battlefield := Battlefield.new()
 var _home_camera := Transform3D.IDENTITY
+var _pan_button := MOUSE_BUTTON_NONE
+var _pan_anchor := Vector2.ZERO
 var simulation := MatchSimulation.new()
 var computer_enabled := false
 var skirmish_map := 0
@@ -96,6 +98,7 @@ func _ready() -> void:
 
 
 func reset_match(against_computer: bool = false, mission: CampaignMission = null) -> void:
+	cancel_camera_pan()
 	computer_enabled = against_computer
 	simulation.reset(mission, skirmish_map)
 	_computer.error_scale = mission.cpu_error_scale if mission != null else 1.0
@@ -148,11 +151,24 @@ func cancel_input() -> void:
 
 
 func _cancel_human_input() -> void:
+	cancel_camera_pan()
 	if not is_computer_turn():
 		cancel_input()
 
 
 func _input(event: InputEvent) -> void:
+	# Capture a camera drag through HUD crossings and modifier-key releases.
+	if _pan_button != MOUSE_BUTTON_NONE:
+		if event is InputEventMouseMotion:
+			_pan_camera(_pan_anchor, event.position)
+			_pan_anchor = event.position
+			get_viewport().set_input_as_handled()
+			return
+		if event is InputEventMouseButton:
+			if event.button_index == _pan_button and not event.pressed:
+				cancel_camera_pan()
+			get_viewport().set_input_as_handled()
+			return
 	if simulation.phase != MatchSimulation.Phase.ACTIVE or is_computer_turn():
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
@@ -174,15 +190,10 @@ func _input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _handle_camera_input(event) or _pan_button != MOUSE_BUTTON_NONE:
+		return
 	if simulation.phase != MatchSimulation.Phase.ACTIVE or is_computer_turn():
 		return
-	if event is InputEventMouseButton and event.pressed and not _aim_controls.is_dragging():
-		if event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
-			camera.fov = clampf(camera.fov + (-2.0 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 2.0), 18.0, 40.0)
-			return
-	if event is InputEventKey and event.pressed and event.keycode == KEY_HOME and not _aim_controls.is_dragging():
-		camera.transform = _home_camera
-		camera.fov = START_CAMERA_FOV
 	if event is InputEventKey and event.pressed and event.keycode == KEY_3:
 		select_weapon(ArtilleryShot.Weapon.SHOTGUN)
 	if event.is_action_pressed("unit_jump"):
@@ -200,6 +211,44 @@ func _unhandled_input(event: InputEvent) -> void:
 		_aim_controls.begin_drag(event.position)
 	elif event.is_action_pressed("fire"):
 		_aim_controls.begin_keyboard()
+
+
+func cancel_camera_pan() -> void:
+	_pan_button = MOUSE_BUTTON_NONE
+
+
+func _handle_camera_input(event: InputEvent) -> bool:
+	# View controls remain available during CPU turns and flying shots.
+	if _aim_controls.is_aiming():
+		return false
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_MIDDLE or (event.button_index == MOUSE_BUTTON_LEFT and event.shift_pressed):
+			_pan_button = event.button_index
+			_pan_anchor = event.position
+		elif event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+			camera.fov = clampf(camera.fov + (-2.0 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 2.0), 18.0, 40.0)
+		else:
+			return false
+	elif event is InputEventKey and event.pressed and event.keycode == KEY_HOME:
+		cancel_camera_pan()
+		camera.transform = _home_camera
+		camera.fov = START_CAMERA_FOV
+	else:
+		return false
+	get_viewport().set_input_as_handled()
+	return true
+
+
+func _pan_camera(from: Vector2, to: Vector2) -> void:
+	var start := AimControls._point_on_plane(camera, from)
+	var end := AimControls._point_on_plane(camera, to)
+	if start == Vector2.INF or end == Vector2.INF:
+		return
+	# Bound the view's centre to the playable map, rather than letting it get lost.
+	var center := AimControls._point_on_plane(camera, get_viewport().get_visible_rect().size * 0.5)
+	var map_size := Vector2(TerrainGrid.SIZE) * TerrainGrid.CELL_SIZE
+	var bounded := (center + start - end).clamp(Vector2.ZERO, map_size)
+	camera.position += Vector3(bounded.x - center.x, bounded.y - center.y, 0.0)
 
 
 func is_computer_turn() -> bool:

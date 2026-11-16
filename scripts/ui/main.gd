@@ -212,6 +212,7 @@ func _refresh_shelter_hud(station: int) -> void:
 
 func _pause_game() -> void:
 	lab.cancel_charge()
+	arena.cancel_camera_pan()
 	if not arena.is_computer_turn():
 		arena.cancel_input()
 	_show_screen(Screen.PAUSE)

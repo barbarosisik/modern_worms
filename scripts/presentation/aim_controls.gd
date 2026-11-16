@@ -31,6 +31,10 @@ func is_dragging() -> bool:
 	return _source == &"pointer_fire"
 
 
+func is_aiming() -> bool:
+	return _source != &""
+
+
 func update_drag(camera: Camera3D, position: Vector2) -> void:
 	if not is_dragging():
 		return
