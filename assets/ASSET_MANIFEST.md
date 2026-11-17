@@ -32,3 +32,13 @@ The photographed surface maps above are unused experiments, retained only locall
 - `fonts/Fredoka.ttf`: unchanged variable font from [Google Fonts](https://github.com/google/fonts/tree/main/ofl/fredoka), font source Git blob `349b6ecef8a358ede29b7bf74a08196be5d71b25`. SIL OFL 1.1; copyright/license retained in `Fredoka-OFL.txt`. OpenType weights are selected at runtime.
 
 Kenney preview/sample images were inspected locally but are not included as game assets. The unrelated Plumberry no-source-redistribution rule remains unchanged; that directory stays ignored.
+
+## 16 November — living clubhouse shelter
+- Six additional unchanged OBJ/MTL models from the same **Kenney Furniture Pack 1.0** archive and bundled CC0
+  license: paneling, pillow, cardboardBoxClosed, sideTable, plantSmall1, lampSquareCeiling.
+  Creator/source remains https://opengameart.org/content/furniture-kit .
+- Runtime placement, scale, wall facing and explicit cream/teal/wood material adjustments live in clubhouse_decor.gd.
+  Modular floor meshes repeat as separate planks; furniture source geometry is retained.
+- assets/ui/shelter/{map,kit,crew,valley_route}.svg are original project UI symbols and a two-destination schematic.
+  They contain no copied Worms/Wild Ones artwork.
+- Existing paper UI and Fredoka licenses remain in their asset folders. No raw local Plumberry assets added.

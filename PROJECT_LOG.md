@@ -196,3 +196,54 @@ Updated CampaignRun roster/dialogue, wardrobe copy, shelter dialogue/results, sk
 Added VISUAL_ADVANCEMENT_PLAN.md as the current ordered visual handoff. Package A details shelter composition, surfaces/furnishing, lighting, station discovery, crew/progress presence and validation. B-D cover cat identity/animation, five-map surfaces/landmarks, and combat/audio/UI polish, with file entry points, dependencies, acceptance checks and a copyable next-agent instruction. Updated STEP_ONE.md and UI_ART_DIRECTION.md to point to it. These visual packages are planned, not implemented in this revision; no campaign expansion.
 Validation: campaign_checks, interface_checks, aim_checks and camera_checks passed. Forward+ wardrobe capture inspected at 1280x720: both named leads render as upright cats with existing selectable tints. Controlled captures also generated for the other menu/shelter contexts; this is not a full manual playthrough. No restricted assets added.
 Delivery: feature/miska-nova-visual-roadmap into development_branch after checks; main remains manual. Next agent should implement package A first, provide an owner playtest, and then proceed to B-D only after feedback.
+
+## 2026-11-16 — living shelter package A and permanent onboarding
+Owner authorized the next visual delivery, then requested a comprehensive onboarding prompt in chat and in
+the repository plus a standing requirement to maintain it. Completed the shelter work already underway and
+created root ONBOARDING.md with setup/run/preview/check commands, architecture, current state, limits,
+workflow, next B/C/D tasks and a copyable agent prompt. AGENTS.md now requires onboarding maintenance at
+every handoff. Updated plan.md, VISUAL_ADVANCEMENT_PLAN.md, STEP_ONE.md and UI_ART_DIRECTION.md;
+historical campaign-growth plans are explicitly superseded.
+
+Shelter package A: orthographic cutaway framing, cream upper walls/teal wainscot/wood trim and repeated floor
+planks; three furnished imported-model work zones and an unobstructed front lane. Named scene anchors own
+station proximity and decoration positions. Added original two-destination route art and map/kit/paw symbols,
+nearby plaque emphasis, purpose/bound-key/action prompts, saved crew/kit/progress displays, rescued Scout mat,
+continuing stationary actor poses and subtle plant motion. Disabled upgrades explain their state.
+Completed route now provides a real solo-skirmish exit rather than promising a third mission.
+Retained station coordinates, movement rules, campaign save schema, two missions/five maps and battle inputs.
+Corrected uppercase old lead names on Home and stale cat/dog wording in the asset setup document.
+
+Assets: six additional original CC0 Kenney Furniture sources from the already licensed archive; manifest updated.
+Restricted Plumberry sources remain local/ignored. No reference artwork or new third-party sources copied.
+Added tools/preview_shelter.gd for playable fresh/rescued/complete previews using isolated progress/settings.
+Added meaningful shelter input/progress checks; interface fixture now waits for visible layout before pointer clicks.
+
+Validation: shelter_checks, interface_checks, campaign_checks, aim_checks and camera_checks passed.
+Campaign checks still clear both missions using mouse shots and exercise rescue, purchases, checkpoint/reopen,
+retry and fresh-run reset. Shelter checks walk all stations, exercise key and pointer actions, paused movement,
+key echo, rebound interaction prompt, saved crew/equipment, both-resolution framing and completed-route skirmish.
+Inspected Forward+ room states and panel captures at 1280x720/1920x1080; captures are controlled inspection,
+not a full manual playthrough or owner acceptance. Room art remains a checkpoint, with textures/identity/poses
+still open to owner feedback. No claim that the full visual MVP or balance is complete.
+
+Delivery: feature/shelter-living-clubhouse through a tested PR into development_branch. Main remains manual.
+Next: owner shelter review/refinements, then package B cat identity/animation/weapon poses, C existing-map
+surfaces/landmarks, D combat/audio/UI feedback. Campaign expansion remains deferred.
+
+## 2026-11-16 — maintained next-agent onboarding requested
+Owner requested a comprehensive prompt in chat and in a permanent repo file, with this repeated at future handoffs.
+Added root ONBOARDING.md: product decisions, reading order/authority, exact local Godot run/editor/test commands,
+asset installation/fallback restrictions, architecture/file map, delivered shelter details, known limitations,
+ordered B/C/D work, publication rules and a copyable next-agent prompt. AGENTS.md now makes maintaining
+onboarding + plan + log and supplying the chat prompt a standing project rule. plan.md, STEP_ONE.md and
+VISUAL_ADVANCEMENT_PLAN.md point to the current checkpoint rather than telling the next agent to redo A.
+Added tools/preview_shelter.gd for isolated fresh/rescued/complete room playtests; Forward+ startup verified.
+Existing source-restricted models remain ignored. Scratch preview settings/progress use separate paths and
+clean up on normal app exit. No user campaign or settings reset.
+
+Final checks: shelter, interface, campaign, aim and camera passed. The interface fixture now waits for layout
+after revealing the shelter before clicking; all station modals including locked explanations fit 720p.
+Final room states inspected in Forward+ at both 1280x720 and 1920x1080; station panel captures inspected at
+1080p. Visual inspection and automated input checks do not constitute a full manual playthrough.
+Next handoff: owner shelter feedback first, then package B when asked to advance. Keep two missions.

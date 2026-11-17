@@ -92,6 +92,7 @@ static func install(app: Node) -> void:
 		button.theme_type_variation = "PrimaryButton"
 		button.remove_theme_stylebox_override("normal")
 	_build_home(app)
+	_build_shelter(app)
 	var backdrop := app.get_node("ArenaBackdrop/CartoonBackdrop") as ColorRect
 	backdrop.color = Color("#263e45")
 	var pattern := TextureRect.new()
@@ -102,6 +103,33 @@ static func install(app: Node) -> void:
 	pattern.modulate = Color(0.7,0.8,0.7,0.06)
 	backdrop.add_child(pattern)
 	pattern.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+
+static func _build_shelter(app: Node) -> void:
+	var hud := app.get_node("%ShelterHud") as Control
+	hud.get_node("Heading").text = "OUR CLUBHOUSE"
+	var text := hud.get_node("StationCard/Row/Text") as VBoxContainer
+	var title := Label.new()
+	title.name = "StationTitle"
+	title.add_theme_font_override("font", face(650))
+	title.add_theme_font_size_override("font_size", 23)
+	text.add_child(title)
+	text.move_child(title, 0)
+	var story := app.get_node("%ShelterStory") as Label
+	story.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	story.add_theme_font_size_override("font_size", 16)
+	hud.get_node("StationCard").offset_top = -132
+	hud.get_node("StationCard/Row").add_theme_constant_override("separation", 20)
+	var action := app.get_node("%StationAction") as Button
+	action.custom_minimum_size = Vector2(260, 52)
+	var shortcut := hud.get_node("MapShortcut") as Button
+	shortcut.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	shortcut.offset_left = -334
+	shortcut.offset_right = -160
+	shortcut.offset_top = 16
+	shortcut.offset_bottom = 54
+	shortcut.custom_minimum_size = Vector2(0, 38)
+	shortcut.tooltip_text = "Open the expedition map from anywhere in the clubhouse."
 
 
 static func _build_home(app: Node) -> void:
@@ -167,7 +195,7 @@ static func _build_home(app: Node) -> void:
 	preview.add_child(viewport)
 	viewport.add_child(preload("res://scripts/presentation/menu_crew.gd").new())
 	var names := Label.new()
-	names.text = "MARA  &  ELI"
+	names.text = "MISKA  &  NOVA"
 	names.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	names.add_theme_font_size_override("font_size",30)
 	names.add_theme_color_override("font_color",PAPER)

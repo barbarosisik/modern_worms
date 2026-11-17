@@ -1,6 +1,6 @@
 # Visual advancement handoff: Miska and Nova
 Updated 16 November 2026. Implementation handoff for the next agent.
-Status: lead rename/model change delivered in this revision; all numbered work packages below are PLANNED.
+Status: lead rename/model change and shelter package A implemented as tested checkpoints. A awaits owner visual feedback. B-D are PLANNED.
 This is the current visual priority order. Historical plans remain context, not permission to expand scope.
 
 ## Product and preserved decisions
@@ -50,7 +50,14 @@ B-D are subsequent individually testable deliveries, not one giant rewrite.
 Mines and support abilities follow visual/readability acceptance; they are separate gameplay work.
 Do not add chapters, online play, ML opponents or new species during these packages.
 
-## A. First delivery: a shelter that feels like home
+## A. Shelter checkpoint implemented; owner review next
+
+Completed in feature/shelter-living-clubhouse: cutaway framing, wall/floor/trim surfaces, three imported furnished
+zones, shared station anchors, original route/crew/kit displays, highlighted proximity plaques and bound-key
+action prompts, modal input handling, living crew poses, saved progress details and completed-route skirmish.
+Added isolated tools/preview_shelter.gd and shelter_checks.gd. Shelter/interface/campaign/aim/camera suites passed.
+Inspect fresh, rescued and complete states before further visual changes. This is an implemented checkpoint,
+not a claim of final art or owner acceptance. Original A1-A6 acceptance specification below remains for review.
 Suggested branch: feature/shelter-living-clubhouse.
 Goal: a cozy cutaway ranger clubhouse with three unmistakable stations, visible cats and an obvious next action.
 Keep side-view walking and current station functions. Improve the room, not just its panel colors.
@@ -187,10 +194,8 @@ Define those mechanics and tests before coding. Do not turn a visual branch into
 - Give concise achieved/remaining report and specific owner playtest route.
 
 ## Copyable next-agent instruction
-Read AGENTS.md, VISUAL_ADVANCEMENT_PLAN.md, UI_ART_DIRECTION.md and latest PROJECT_LOG.md.
-Implement package A only on a new feature branch from development_branch, using the established local cartoon assets
-and licensed furniture. Preserve Miska/Nova as cats, saves, firing, camera controls, the two missions and five maps.
-Inspect the running baseline before edits. Complete A1-A6, verify behavior and actual Forward+ visuals,
-update the log, publish and merge tested work into development_branch. Main is manual.
-Then provide the owner a working test command and request visual feedback before B-D.
-Ask a concise question only when a material product decision cannot be inferred; continue independent authorized work.
+Use the maintained prompt in [ONBOARDING.md](ONBOARDING.md#11-copyable-next-agent-prompt).
+Read AGENTS.md and the latest PROJECT_LOG first. A is implemented; apply newest owner shelter feedback
+before B. If asked to continue, implement B on a descriptive branch from development_branch, preserve
+the accepted UI/saves/inputs/two-mission scope, validate and integrate there. Main stays manual.
+Maintain ONBOARDING.md, this plan and the log at every handoff and provide the prompt in chat.

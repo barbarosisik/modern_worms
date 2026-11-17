@@ -46,6 +46,8 @@ func _run() -> void:
 	_check_visible_cards(app)
 	app._close_campaign_panel()
 	app._enter_shelter()
+	await process_frame
+	await process_frame
 	_click(app.get_node("%StationAction"))
 	await process_frame
 	_expect(app.campaign_panel.visible and app.find_child("StartMission",true,false) != null, "The nearby shelter station opens the working mission map.")

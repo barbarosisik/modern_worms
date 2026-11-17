@@ -44,3 +44,13 @@ The leads are now Miska and Nova, both cats. The owner prefers the current UI di
 VISUAL_ADVANCEMENT_PLAN.md is the current detailed handoff: shelter composition/interaction first,
 then cat identity/animation, existing-map surfaces/landmarks, and combat/audio/UI polish.
 These packages are planned, not delivered. Campaign expansion remains deferred.
+
+## 16 November — shelter composition checkpoint
+The shelter now uses orthographic cutaway framing, cream upper walls with teal paneling, wood trim and
+separate floor planks. Three named station anchors own furniture/display positions and proximity checks.
+Original map/kit/paw diagrams on licensed paper panels identify expedition, team and crew work.
+Rescue/equipment/progress update from CampaignRun; nearby plaques highlight, and the bottom prompt exposes
+the bound key plus a matching pointer action. Nova/Scout idle poses continue; window-side plant motion is subtle.
+The room preserves a clear front walking lane. Added CC0 Kenney paneling, pillow, boxes, side table, small plant
+and ceiling lamp from the existing licensed source archive. No new restricted models.
+Owner acceptance is pending; see ONBOARDING.md and the latest PROJECT_LOG for validation and handoff.
