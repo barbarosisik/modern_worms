@@ -9,3 +9,9 @@ Current product scope (owner revision, 16 November 2026): enlarge and improve th
 - Keep commits under the owner's configured identity without assistant attribution.
 
 Read the recent entries in `PROJECT_LOG.md`, `STEP_ONE.md` and `REFERENCE_DESIGN_RESEARCH.md` before continuing development. Follow `CARTOON_ASSET_SETUP.md` for local character assets; never commit the restricted files in `assets/local_plumberry/`.
+
+## Maintained onboarding
+Read [ONBOARDING.md](ONBOARDING.md) at the start of project work. At every handoff, update that file with
+implemented work, validation, limitations and exact next tasks; update VISUAL_ADVANCEMENT_PLAN.md and
+PROJECT_LOG.md too. Supply a copyable current onboarding prompt in chat. This is the owner's standing
+request of 16 November 2026. Check the log before presenting historical plans as unfinished work.

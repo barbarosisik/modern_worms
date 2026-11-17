@@ -110,3 +110,9 @@ The leads are now Miska and Nova, both cats. The owner prefers the current UI di
 VISUAL_ADVANCEMENT_PLAN.md is the current detailed handoff: shelter composition/interaction first,
 then cat identity/animation, existing-map surfaces/landmarks, and combat/audio/UI polish.
 These packages are planned, not delivered. Campaign expansion remains deferred.
+
+## 16 November — shelter package A and maintained handoff
+Package A in VISUAL_ADVANCEMENT_PLAN.md is now implemented as a tested shelter checkpoint.
+Read ONBOARDING.md for exact setup, architecture, verification and next task. Next: owner room feedback,
+then B cat identity/animation, C existing-map art, D combat/audio/UI feedback. New missions remain deferred.
+Maintain onboarding, plan and log and give the copyable prompt in chat at every handoff.

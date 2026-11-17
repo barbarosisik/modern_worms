@@ -3,6 +3,7 @@ extends CenterContainer
 
 signal close_requested
 signal story_requested(outfits: PackedInt32Array)
+signal skirmish_requested
 signal mission_requested
 signal checkpoint_changed
 
@@ -91,7 +92,7 @@ func open_map(run: CampaignRun) -> void:
 		row.add_child(badge)
 	if run.finished():
 		_body.text = "The ferry is secure. Both existing missions are complete. Try the larger skirmish maps, or return to your crew in the shelter."
-		_back.grab_focus()
+		_button("Play solo skirmish", "ShelterSkirmish", func() -> void: skirmish_requested.emit()).grab_focus()
 		return
 	_body.text = CampaignRun.BRIEFINGS[run.cleared]
 	_wallet.text = CampaignRun.OBJECTIVES[run.cleared]
@@ -176,6 +177,15 @@ func _refresh_team() -> void:
 	_body.text = "Field kits give every rescuer +%d starting HP in each mission." % CampaignRun.KIT_BONUS
 	_purchase.text = "Field kits equipped" if _run.field_kits else "Buy field kits  ·  %d supply" % CampaignRun.UPGRADE_COST
 	_purchase.disabled = not _run.can_buy_kits()
+	if _run.field_kits:
+		_body.text += "\nEquipped: the bonus applies automatically to the whole crew."
+	elif _run.finished():
+		_body.text += "\nBoth expeditions are complete. Start a fresh story to train a new crew."
+	elif _run.cleared == 0:
+		_body.text += "\nClear First Signal to unlock the supply bench."
+	elif _run.supplies < CampaignRun.UPGRADE_COST:
+		_body.text += "\nCollect more supplies in your next expedition."
+	_purchase.tooltip_text = _body.text
 
 
 func _refresh_roster() -> void:
@@ -184,10 +194,6 @@ func _refresh_roster() -> void:
 	for i in range(_models.size()):
 		_models[i].visible = i == _roster_index
 		_models[i].position.x = 0.0
-	_preview.show()
-	for i in range(_models.size()):
-		_models[i].visible = i == _roster_index
-		if i == _roster_index: _models[i].position.x = 0
 	var tier := _run.guide_tiers[_roster_index]
 	var dots := TrajectoryGuide.DOT_COUNTS
 	_body.text = "%s can currently see up to %d dots when aiming." % [CampaignRun.ROSTER[_roster_index], dots[tier]]
@@ -195,6 +201,15 @@ func _refresh_roster() -> void:
 	if tier < dots.size() - 1:
 		_purchase.text = "Train aim to %d dots  ·  %d supply" % [dots[tier + 1], CampaignRun.UPGRADE_COST]
 	_purchase.disabled = not _run.can_train(_roster_index)
+	if tier == dots.size() - 1:
+		_body.text += "\nThis crew member has completed all aim training."
+	elif _run.finished():
+		_body.text += "\nBoth expeditions are complete. Start a fresh story to train a new crew."
+	elif _run.cleared == 0:
+		_body.text += "\nClear First Signal to unlock crew training."
+	elif _run.supplies < CampaignRun.UPGRADE_COST:
+		_body.text += "\nCollect more supplies in your next expedition."
+	_purchase.tooltip_text = _body.text
 
 
 func _show_wallet() -> void:

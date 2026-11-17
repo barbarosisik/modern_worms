@@ -63,6 +63,7 @@ func _ready() -> void:
 	campaign_panel.close_requested.connect(_close_campaign_panel)
 	campaign_panel.story_requested.connect(_begin_story)
 	campaign_panel.mission_requested.connect(_launch_mission)
+	campaign_panel.skirmish_requested.connect(_start_solo)
 	campaign_panel.checkpoint_changed.connect(_save_campaign_checkpoint)
 	shelter.station_changed.connect(_refresh_shelter_hud)
 	shelter.station_opened.connect(_open_shelter_station)
@@ -173,6 +174,8 @@ func _enter_shelter() -> void:
 
 
 func _open_shelter_station(station: int) -> void:
+	if _screen != Screen.SHELTER or station not in range(3):
+		return
 	_open_campaign_panel(Screen.SHELTER)
 	match station:
 		CampaignShelter.Station.MAP:
@@ -190,6 +193,9 @@ func _open_campaign_panel(return_to: Screen) -> void:
 
 func _close_campaign_panel() -> void:
 	_show_screen(_campaign_panel_return)
+	if _campaign_panel_return == Screen.SHELTER:
+		shelter.refresh_progress(campaign)
+		_refresh_shelter_hud(shelter.station)
 
 
 func _save_campaign_checkpoint() -> void:
@@ -202,13 +208,23 @@ func _refresh_shelter_hud(station: int) -> void:
 	%ShelterProgress.text = "%d/%d MISSIONS CLEARED   ·   %d SUPPLIES" % [
 		campaign.cleared, CampaignRun.MISSIONS.size(), campaign.supplies
 	]
-	%ShelterStory.text = (
-		"Both available missions complete. More chapters are planned." if campaign.finished()
-		else "Nova: Scout's safe. Let's get our gear before we take the ferry."
+	var next: String = "Both expeditions complete · Try a skirmish at the map table." if campaign.finished() else (
+		"Next expedition: " + CampaignRun.MISSIONS[campaign.cleared]
 	)
+	var title := shelter_hud.get_node("StationCard/Row/Text/StationTitle") as Label
+	title.text = "Make yourself at home" if station == CampaignShelter.Station.NONE else CampaignShelter.STATION_NAMES[station]
+	%ShelterStory.text = next if station == CampaignShelter.Station.NONE else (
+		CampaignShelter.STATION_PURPOSES[station] + "  ·  " + next
+	)
+	var key := CampaignShelter.key_hint("interact")
+	shelter_hud.get_node("StationCard/Row/Text/Controls").text = "%s / %s  Walk  ·  %s  Interact  ·  Click the button to open" % [
+		CampaignShelter.key_hint("unit_left"), CampaignShelter.key_hint("unit_right"), key
+	]
 	var action := %StationAction as Button
 	action.disabled = station == CampaignShelter.Station.NONE
-	action.text = "Walk to a station" if action.disabled else "E   ·   Open " + CampaignShelter.STATION_NAMES[station]
+	action.text = "Walk to a station" if action.disabled else key + "  ·  Open station"
+	action.tooltip_text = "Approach the map, supply bench or crew corner." if action.disabled else CampaignShelter.STATION_PURPOSES[station]
+
 
 
 func _pause_game() -> void:
@@ -257,7 +273,7 @@ func _show_mission_result(winner: int, detail: Label, next: Button) -> void:
 		_save_campaign_checkpoint()
 	%ResultTitle.text = "Scout is safe" if _mission_index == 0 else "Chapter cleared"
 	detail.text = "Scout joins Miska and Nova in the turn queue." if _mission_index == 0 else (
-		"The ferry is secure. The valley has a route out, and the crew can follow the relay into the pines."
+		"The ferry is secure. Both expeditions are complete. Return home to your crew or try a skirmish."
 	)
 	detail.text += "\n\nSupplies banked   +%d" % (CampaignRun.CLEAR_REWARD + collected)
 	if _checkpoint_failed:
