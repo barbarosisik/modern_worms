@@ -2,6 +2,12 @@
 
 [ext_resource type="Script" path="res://scripts/ui/campaign_panel.gd" id="1"]
 
+[sub_resource type="Environment" id="PreviewLighting"]
+ambient_light_source = 2
+ambient_light_color = Color(0.92, 0.94, 0.91, 1)
+ambient_light_energy = 0.56
+tonemap_mode = 2
+
 [node name="CampaignPanel" type="CenterContainer"]
 visible = false
 anchors_preset = 15
@@ -58,16 +64,17 @@ unique_name_in_owner = true
 position = Vector3(0, 0.64, 4.2)
 current = true
 fov = 22.0
+environment = SubResource("PreviewLighting")
 
 [node name="Key" type="DirectionalLight3D" parent="Card/Stack/Preview/Viewport/PreviewWorld"]
-rotation_degrees = Vector3(-31, -22, 0)
-light_color = Color(1, 0.9, 0.77, 1)
-light_energy = 1.2
+rotation_degrees = Vector3(-24, 0, 0)
+light_color = Color(1, 0.945, 0.851, 1)
+light_energy = 0.77
 
 [node name="Fill" type="DirectionalLight3D" parent="Card/Stack/Preview/Viewport/PreviewWorld"]
-rotation_degrees = Vector3(-11, 55, 0)
-light_color = Color(0.69, 0.83, 1, 1)
-light_energy = 0.65
+rotation_degrees = Vector3(-18, 160, 0)
+light_color = Color(0.635, 0.776, 0.808, 1)
+light_energy = 0.28
 
 [node name="Wallet" type="Label" parent="Card/Stack"]
 unique_name_in_owner = true

@@ -10,7 +10,9 @@ The owner approved free local character assets on 15 November 2026. The public r
 4. Copy these files from the archive into it: `maple-the-cat.glb`, `ollie-the-terrier.glb`, `ziggy-the-wolf.glb`, `TERMS.md`, `README.md`.
 5. Open/import `project.godot` in Godot. The models and generated import files stay ignored by Git. Never force-add this directory.
 
-Miska and Nova both use the cat, Scout uses a smaller terrier, and opponents use the wolf. The adapter retains existing character names, outfits and saves. Idle, walk/run and jump clips are selected from the imported animations, with presentation recoil. Other supplied clips are not yet connected to game reactions.
+Miska and Nova both use the cat, Scout uses a smaller terrier, and opponents use the wolf. The adapter retains existing character names, outfits and saves. The adapter loops idle and walk, and uses jump, pain and celebrate as one-shot clips.
+Aim and recoil use the paw sockets and a game-owned pose. Nova's bow and cooler coat are
+applied by the game. The fallback uses idle/walk and simple presentation poses.
 
 Without the local files the game falls back to the older CC0 quadrupeds so a fresh clone still runs. That fallback is not the intended final character appearance. Install the files above to see the approved upright direction.
 

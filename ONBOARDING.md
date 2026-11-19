@@ -1,8 +1,8 @@
 # Project onboarding and current handoff
 
-Updated 16 November 2026. Start here together with AGENTS.md.
+Updated 19 November 2026. Start here together with AGENTS.md.
 This is the canonical maintained handoff. Read recent PROJECT_LOG.md entries for subsequent changes.
-Current delivery: feature/shelter-living-clubhouse, integrated through development_branch.
+Current delivery: package B on feature/cat-character-polish. See the latest project log for validation.
 Verify the actual remote head and working tree; do not assume old conversation hashes are current.
 
 ## 1. Product and accepted direction
@@ -152,34 +152,30 @@ Forward+ room states inspected at 1280x720 and 1920x1080; station panels inspect
 Automated layout checks also cover the 720p station panels, including locked explanations.
 Controlled inspection is not a full manual playthrough or proof of fun/balance.
 **Owner visual acceptance is pending.** This is a playable art checkpoint, not final art.
-Textures, bespoke prop details and character identity/poses still have room for refinement.
+Textures and bespoke prop details remain open to owner feedback.
 
-## 8. Next task and delivery order
+## 8. Character checkpoint and next work
 
-Read the newest owner message first. Do not redo A because an older instruction still says to start it.
+Package B gives Miska a warm coat and Nova a cooler coat and an original bow. Outfit choices
+still apply. Shared character sizing, a small face fill, and matched portrait lighting carry
+the appearance between screens. Skirmish labels show the leads' names and grow slightly as
+the camera zooms out.
 
-- Shelter feedback: make a narrow follow-up first and retest the station loop.
-- If the owner asks to advance, that authorizes the next package; do not ask again for the same permission.
-- Next package B: distinct, expressive cats. Follow VISUAL_ADVANCEMENT_PLAN.md.
-- Then C: surfaces/landmarks across existing maps.
-- Then D: combat effects, licensed audio/volume behavior and final UI/turn/pickup feedback.
-- Mines and support abilities follow visual acceptance. Campaign expansion remains deferred.
+The upright rigs have idle, walk, jump, pain and celebrate clips plus hand sockets. They have
+no aim or fire clips. Idle/walk loop. Jump, hurt and victory play once. The equipped pose and
+recoil come from the presentation layer, and the weapon stays at the near paw. On release the
+pose remembers the fired weapon and direction. Victory finishes behind the result panel while
+the match stays paused. The CC0 fallback uses its idle/walk clips, simple reactions and an
+approximate foreleg mount.
 
-### Package B implementation checklist
-1. Audit installed rig clips and attachment transforms before assuming animations exist.
-2. Differentiate Miska/Nova through default palettes plus a non-color identity cue/name treatment.
-   Preserve appearance choices and upright cartoon silhouettes.
-3. Match model scale, face lighting and materials across home, wardrobe, shelter and battle.
-4. Define idle/walk/airborne/aim/fire/hurt/win priorities and clip fallbacks.
-   One-shot reactions must finish and return to idle/walk.
-5. Align weapons and muzzle positions to paws in both directions and at aim extremes.
-6. Keep cosmetic motion separate from collision, damage timing and turn ownership.
-7. Verify local cartoon/fallback paths, save compatibility and gameplay-scale visibility.
-8. Deliver a tested playable checkpoint and update handoff, plan and log.
+- Take any new shelter or character feedback as a narrow follow-up.
+- Next package C: pilot terrain surfaces, readable footing and landmark depth on River Outposts.
+  Check the real collision boundary and unsupported props after a blast, then cover the other
+  two skirmishes and both missions.
+- Then D: combat cues, licensed audio, working volume/mute, and short introductory controls.
+- Mines and crew support abilities follow in separate deliveries. Campaign expansion stays deferred.
 
-For C, preserve terrain occupancy/collision/mesh continuity; decorations must not bridge holes or float after blasts.
-For D, preserve weapon rules and input; audio settings must affect every sound path.
-Use separate descriptive branches/checkpoints, not one rewrite containing all future work.
+Keep each delivery scoped. See VISUAL_ADVANCEMENT_PLAN.md for the acceptance checks.
 
 ## 9. Verification commands and evidence
 
@@ -192,13 +188,14 @@ Use separate descriptive branches/checkpoints, not one rewrite containing all fu
 ~~~
 
 Shelter/UI suites: shelter_checks, interface_checks, campaign_checks, aim_checks, camera_checks.
+Character checks: character_presentation_checks (identity, aim directions, recoil and reaction recovery).
 Other suites: terrain_lab_checks, terrain_contour_checks, match_checks, solo_checks,
 supply_checks, skirmish_maps_checks, shotgun_checks, walking_checks.
 
 Require PASS and inspect errors: Godot can exit 0 after a script error or quit-after timeout.
 Inspect real Forward+ renders; headless tests cannot approve art. Use isolated saves/settings.
 For UI changes test pointer navigation, disabled reasons, focus, modal stacking and input release.
-For visual changes inspect both resolutions and relevant map/character states.
+Use a short Forward+ play check for the affected screens or controls. Capture only what helps diagnose a change.
 Scratch review captures/scripts under ignored .godot are machine-local, not guaranteed on another checkout.
 Use the tracked preview for reproducible shelter inspection. Never publish restricted model sources.
 
@@ -221,7 +218,7 @@ Use the tracked preview for reproducible shelter inspection. Never publish restr
 
 You are continuing barbarosisik/modern_worms, a Godot 4.7.2 side-view 3D artillery game inspired by Worms/Wild Ones.
 Read AGENTS.md, ONBOARDING.md, latest PROJECT_LOG.md, VISUAL_ADVANCEMENT_PLAN.md, UI_ART_DIRECTION.md,
-CARTOON_ASSET_SETUP.md and assets/ASSET_MANIFEST.md before editing. Then inspect the running build.
+CARTOON_ASSET_SETUP.md, assets/ASSET_MANIFEST.md and MAP_DESIGN.md. Then inspect the running build.
 
 Use %USERPROFILE%\Documents\Codex\.local-projects\modern_worms and the adjacent godot-4.7.2 engine.
 ONBOARDING.md has exact PowerShell setup/run/test commands.
@@ -229,16 +226,14 @@ Miska and Nova are upright cartoon cats; Scout is the rescued dog.
 Keep installed local Plumberry models ignored and never publish them.
 Preserve names, appearance choices, saves, imperfect CPU, drag-to-fire and camera controls.
 
-Package A shelter work is implemented as a tested checkpoint; owner visual acceptance is pending.
-Inspect fresh/rescued/complete states with tools/preview_shelter.gd without changing owner progress.
-Apply newest shelter feedback first. When asked to advance, implement package B: cat identity,
-animation priorities/fallbacks, consistent materials/lighting/scale and weapon/paw positioning.
-Then C (existing-map surfaces/landmarks) and D (combat/audio/UI feedback), one tested delivery at a time.
-Do not redo A blindly or expand the current two missions/three skirmish maps.
+Packages A and B are playable checkpoints. Take new feedback as a scoped follow-up.
+Inspect shelter stages with tools/preview_shelter.gd using isolated progress.
+Next is package C: pilot River Outposts surface, landmark and scenery depth changes,
+then cover the remaining maps. Preserve collision and destruction. D follows with
+combat/audio/UI feedback. Keep the two missions and three skirmish maps.
 
-Use a descriptive branch from current development_branch and preserve unrelated changes.
-Run relevant suites, require PASS without script errors, and inspect Forward+ at 1280x720 and 1920x1080.
-Use isolated saves and distinguish controlled captures from manual playtests.
+Branch from current development_branch and preserve unrelated changes.
+Require PASS without script errors. Keep the Forward+ play check short and use isolated saves.
 Publish completed work through a PR into development_branch and verify integration; main releases are manual.
 Use owner git identity without assistant attribution.
 At every delivery/handoff update ONBOARDING.md, the visual plan and PROJECT_LOG.md, and give a current
