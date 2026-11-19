@@ -2,6 +2,12 @@ class_name TerrainMesh
 extends Node3D
 
 const HALF_DEPTH := 0.6
+const BATTLE_GRASS := [
+	Color("#88b850"), Color("#819e5c"), Color("#b9ad65"), Color("#84ac62"), Color("#81b76c"),
+]
+const BATTLE_SOIL := [
+	Color("#92593c"), Color("#75604b"), Color("#9a6546"), Color("#925644"), Color("#7a5747"),
+]
 # Marching squares samples cell centres. Ambiguous diagonals stay disconnected.
 const POLYGONS := [[], [[0,4,7]], [[1,5,4]], [[0,1,5,7]], [[2,6,5]], [[0,4,7],[2,6,5]], [[1,2,6,4]], [[0,1,2,6,7]], [[3,7,6]], [[0,4,6,3]], [[1,5,4],[3,7,6]], [[0,1,5,6,3]], [[3,7,5,2]], [[0,4,5,2,3]], [[4,1,2,3,7]], [[0,1,2,3]]]
 var _chunks: Dictionary[Vector2i, MeshInstance3D] = {}
@@ -9,6 +15,12 @@ var _material := ShaderMaterial.new()
 
 func _ready() -> void:
 	_material.shader = preload("res://scripts/presentation/earth.gdshader")
+
+func set_battle_palette(layout: int) -> void:
+	var index := clampi(layout, 0, BATTLE_GRASS.size() - 1)
+	_material.set_shader_parameter("grass_color", BATTLE_GRASS[index])
+	_material.set_shader_parameter("soil_color", BATTLE_SOIL[index])
+
 
 func rebuild_all(terrain: TerrainGrid) -> void:
 	for y in range(TerrainGrid.CHUNK_COUNT.y):

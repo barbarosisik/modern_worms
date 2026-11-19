@@ -1,6 +1,6 @@
 # Visual advancement handoff: Miska and Nova
 Updated 19 November 2026. Implementation handoff for the next agent.
-Packages A and B are tested playable checkpoints. Package C is next, followed by D and separate gameplay deliveries.
+Packages A, B and C are tested playable checkpoints. Package D is next, followed by separate gameplay deliveries.
 This is the current visual priority order. Historical plans remain context, not permission to expand scope.
 
 ## Product and preserved decisions
@@ -45,7 +45,7 @@ A: shelter composition and interaction (first playable delivery).
 B: cat identity and animation consistency.
 C: terrain surfaces and landmarks across existing maps.
 D: combat feedback, sound and final UI cohesion.
-Continue with C and D as separate playable deliveries.
+Continue with D as its own playable delivery.
 Mines and support abilities follow visual/readability acceptance; they are separate gameplay work.
 Do not add chapters, online play, ML opponents or new species during these packages.
 
@@ -142,29 +142,26 @@ and match checks. A short scripted 720p Forward+ run opened the wardrobe and a s
 the shotgun, jumped and fired by dragging. The wardrobe and aiming views were inspected.
 Owner art review remains open.
 
-## C. Battlefield surface and landmark pass
-Suggested branch: feature/battlefield-surface-polish. Depends on established palette.
-1. Preserve all five larger terrain layouts, physics occupancy, destructibility and two-cell step behavior.
-2. Start with River Outposts as a material/landmark pilot; compare terrain to the actual collision boundary.
-3. Refine earth.gdshader/material treatment: broad soil layers, gentle variation and readable grass edge.
-   Avoid noisy tiling or pixel-small details. No opaque grass carpet bridging a real hole.
-4. Maintain terrain_mesh chunk seams and excavation continuity; blast holes must visibly remain open.
-5. Place a small number of recognizable premade landmarks at tactical regions; support must come from terrain.
-6. Separate distant silhouettes, midground scenery and playable terrain using contrast, scale and tint.
-   Do not dim characters to make backgrounds quieter. Reuse the approved stronger teal atmosphere.
-7. Give each existing map a related but distinct identity:
-   River Outposts: riverbank camps and broken posts;
-   Split Ridgeline: rocky high ground and woodland hollows;
-   Broken Causeway: ruined crossing with separated banks;
-   First Signal: ranger post/rescue landmark;
-   Ferry Landing: dock/boat-route markers.
-8. Decorative landmarks have no invisible collision. Any proposed new cover belongs in a separate simulation change.
-9. After blasts remove unsupported decorations without leaving floating trees, grass sheets or light patches.
-10. Check near view, maximum zoom-out, both ends of map and crater-heavy scenes.
-11. Measure frame time and terrain rebuild cost on the same machine before/after; record measurements, not guesses.
-Acceptance: terrain still predicts walk/shot collision, maps differ visibly, and scenery does not hide enemies or supply pickups.
-Validation: terrain_lab, terrain_contour, skirmish_maps, walking, camera and supply suites; inspect all five maps.
-Do not shrink maps or change weapon reach to disguise an art/readability problem.
+## C. Battlefield surfaces and landmark pass
+
+Delivered on feature/battlefield-surface-polish. River Outposts established the treatment for the
+existing five maps. Broad clay strata, sparse pebbles and map-specific turf use the current
+terrain mesh. Distant ridge silhouettes, low far banks and clustered groves add depth behind
+the playable plane. The river has soft, broken ripples.
+
+River Outposts uses tent camps and canoes; Split Ridgeline uses highland rocks and oaks; Broken
+Causeway has crossing fences and pennants; First Signal has a ranger camp near the rescue bank;
+Ferry Landing has a line of boats and landing markers. Existing CC0 scenery was reused. The
+pennants and ridge meshes are built by the game.
+
+Landmarks cast no gameplay shadows and have no collision. Ground props belong to actual terrain
+cells. Wide items check both outer supports along with the central one. A blast hides props that
+lose any checked support. Terrain occupancy, route geometry and two-cell walking steps are preserved.
+
+Validation: terrain_contour, terrain_lab, skirmish_maps, walking, camera, supply, campaign and aim
+suites passed. A 720p Forward+ check covered the opening, a zoomed crater view and wide views
+of the other four maps. Brief same-machine measurements are in PROJECT_LOG.md. Owner play review
+and broader balance testing remain open.
 
 ## D. Feedback, sound and UI completion
 Suggested branch: feature/combat-presentation-pass. Depends on B/C stable presentation.
@@ -199,7 +196,7 @@ Define those mechanics and tests before coding. Do not turn a visual branch into
 
 ## Copyable next-agent instruction
 Use the maintained prompt in [ONBOARDING.md](ONBOARDING.md#11-copyable-next-agent-prompt).
-Read AGENTS.md and the latest PROJECT_LOG first. A and B are implemented. Take the newest owner
-feedback, then continue with C from development_branch. Start with River Outposts and compare the
-visible ground to collision, including a crater. Main promotion remains manual.
+Read AGENTS.md and the latest PROJECT_LOG first. A, B and C are implemented. Take the newest
+owner feedback, then continue with D from development_branch. Give each existing weapon a
+distinct readable cue and test the real volume/mute path. Main promotion remains manual.
 Maintain ONBOARDING.md, this plan and the log at every handoff and provide the prompt in chat.
