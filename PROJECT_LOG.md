@@ -273,3 +273,32 @@ Delivery target is development_branch through the package B PR. Next, handle any
 owner feedback, then start C with River Outposts surfaces, landmarks and scenery depth.
 Compare visible footing and craters against collision before applying the art to other maps.
 D and the separate mine/crew ability work follow. Campaign expansion remains deferred.
+
+## 2026-11-19 | Package C battlefields, surfaces and landmarks
+
+Owner feedback was that the character pass was too subtle in battle. Built the next visual
+package on feature/battlefield-surface-polish from development f7377ae. River Outposts now
+opens beside a tent camp, a canoe and a pennant visible at normal camera distance. All five
+existing maps have tailored earth and turf colors, larger landmarks around existing routes,
+layered ridges and shore groves, and stylized river ripples. Reused CC0 Kenney models and built
+the pennants and ridges in code. Restricted Plumberry sources stay local.
+
+The grass and dirt are shaded on the existing terrain mesh. A crater changes the same occupancy
+and contours. Wide ground props check center and outer supports and disappear if a blast cuts
+any sampled support. Backdrop props have no collision. Weapon, input, save and map rules are
+preserved.
+
+Godot 4.7.2 passed terrain_contour, terrain_lab, skirmish_maps, walking, camera, supply, campaign
+and aim with no errors. The contour check includes a real blast that removes one side support
+while the camp's center remains solid. Inspected the normal River Outposts opening, a wide crater
+view and the other four maps at 720p in Forward+. This was a focused render and behavior check.
+
+On AMD Radeon 740M at 1280×720 Forward+, the short River Outposts opening with simulation paused
+measured 16.66 to 16.69 ms p50 and 17.57 to 17.53 ms p95 across 80 frames per build. In the controlled
+River Outposts crater fixture, dirty terrain mesh rebuild plus prop support checks took 41.75 ms
+before and 48.03 ms after (median of five). Rebuilds can still hitch and this sample does not
+establish sustained match performance.
+
+Next, review the River Outposts opening and other existing maps with the owner. Package D is
+the next separate delivery for distinct combat cues and working audio. The planned mine and
+crew support abilities are later gameplay deliveries. Main releases remain manual.

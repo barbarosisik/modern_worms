@@ -2,7 +2,7 @@
 
 Updated 19 November 2026. Start here together with AGENTS.md.
 This is the canonical maintained handoff. Read recent PROJECT_LOG.md entries for subsequent changes.
-Current delivery: package B on feature/cat-character-polish. See the latest project log for validation.
+Current delivery: package C on feature/battlefield-surface-polish. See the latest project log for validation.
 Verify the actual remote head and working tree; do not assume old conversation hashes are current.
 
 ## 1. Product and accepted direction
@@ -168,14 +168,18 @@ pose remembers the fired weapon and direction. Victory finishes behind the resul
 the match stays paused. The CC0 fallback uses its idle/walk clips, simple reactions and an
 approximate foreleg mount.
 
-- Take any new shelter or character feedback as a narrow follow-up.
-- Next package C: pilot terrain surfaces, readable footing and landmark depth on River Outposts.
-  Check the real collision boundary and unsupported props after a blast, then cover the other
-  two skirmishes and both missions.
-- Then D: combat cues, licensed audio, working volume/mute, and short introductory controls.
+Package C gives all five existing maps layered clay cutaways, distinct turf colors, distant
+ridge and woodland layers, and larger landmarks. River Outposts opens at a tent camp and
+canoe beneath a shore pennant. Larger ground props are anchored to multiple terrain cells and
+hide when a blast removes a sampled support. The terrain mesh still derives from the same
+occupancy. See PROJECT_LOG.md for the measured performance and remaining visual limits.
+
+- Take any new owner feedback as a narrow follow-up. Use River Outposts to judge the changed
+  battlefields at normal zoom and to check a visible crater.
+- Next package D: combat cues, licensed audio, working volume/mute, and short introductory controls.
 - Mines and crew support abilities follow in separate deliveries. Campaign expansion stays deferred.
 
-Keep each delivery scoped. See VISUAL_ADVANCEMENT_PLAN.md for the acceptance checks.
+Keep each delivery scoped. See VISUAL_ADVANCEMENT_PLAN.md for acceptance checks.
 
 ## 9. Verification commands and evidence
 
@@ -226,11 +230,11 @@ Miska and Nova are upright cartoon cats; Scout is the rescued dog.
 Keep installed local Plumberry models ignored and never publish them.
 Preserve names, appearance choices, saves, imperfect CPU, drag-to-fire and camera controls.
 
-Packages A and B are playable checkpoints. Take new feedback as a scoped follow-up.
-Inspect shelter stages with tools/preview_shelter.gd using isolated progress.
-Next is package C: pilot River Outposts surface, landmark and scenery depth changes,
-then cover the remaining maps. Preserve collision and destruction. D follows with
-combat/audio/UI feedback. Keep the two missions and three skirmish maps.
+Packages A, B and C are playable checkpoints. Take new feedback as a scoped follow-up.
+Inspect shelter stages with tools/preview_shelter.gd using isolated progress. To see the map
+changes, start River Outposts from the skirmish selector. Next is D: give shots, turns,
+hits and pickups readable visuals and working audio. Keep guides, collision and destruction
+consistent. Mines and crew abilities follow separately. Keep the two missions and three skirmish maps.
 
 Branch from current development_branch and preserve unrelated changes.
 Require PASS without script errors. Keep the Forward+ play check short and use isolated saves.

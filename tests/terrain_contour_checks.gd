@@ -31,5 +31,28 @@ func check() -> void:
 			assert(not Geometry2D.is_point_in_polygon(Vector2(4,4),triangle), "Crater holes must remain open")
 	view.free()
 	rebuilt.free()
-	print("PASS: rounded silhouettes, open crater holes and seam-safe dirty contour rebuilds")
+	_check_landmark_support()
+	print("PASS: rounded silhouettes, open craters, seam-safe rebuilds and landmark support")
 	quit()
+
+
+func _check_landmark_support() -> void:
+	var game := MatchSimulation.new()
+	var scenery := Battlefield.new()
+	root.add_child(scenery)
+	scenery.dress(game.terrain, BattleMaps.Layout.RIVER_OUTPOSTS, game.units)
+	var camp: Dictionary = {}
+	for landmark in scenery._anchors:
+		var model: Node3D = landmark.node
+		if is_equal_approx(model.position.x, 10.4):
+			camp = landmark
+			break
+	assert(not camp.is_empty(), "River Outposts has a visible camp on its opening bank")
+	var supports: Array[Vector2i] = camp.cells
+	var tent: Node3D = camp.node
+	var blast := (Vector2(supports[0]) + Vector2.ONE * 0.5) * TerrainGrid.CELL_SIZE
+	game.terrain.cut_disc(blast, 0.18)
+	assert(game.terrain.is_solid(supports[1]), "The blast takes out only the outside support")
+	scenery.update_support(game.terrain)
+	assert(not tent.visible, "A wide prop cannot overhang a missing outside support")
+	scenery.free()
