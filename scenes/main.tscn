@@ -540,7 +540,7 @@ theme_override_colors/font_outline_color = Color(0.04, 0.07, 0.1, 0.96)
 theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 18
 horizontal_alignment = 2
-text = "Middle mouse drag: look around\nOr Shift + left mouse drag\nWheel up / down: zoom in / out\nHome: reset view"
+text = "Camera follows shots\nMMB or Shift+LMB drag: pan\nWheel: zoom · Home: reset view"
 
 [node name="BlueHealth" type="Label" parent="Interface/MatchHud"]
 unique_name_in_owner = true

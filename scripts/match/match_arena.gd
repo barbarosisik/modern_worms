@@ -5,6 +5,7 @@ signal hud_changed(state: MatchSimulation, power: float, angle: float, weapon: A
 signal match_finished(winner: int)
 
 enum ComputerPhase { WAITING, SEARCHING, MOVING, AIMING }
+enum CameraFocus { MANUAL, ACTION, NEXT_UNIT }
 
 const BLUE := Color(0.30, 0.76, 1.0)
 const ORANGE := Color(1.0, 0.54, 0.32)
@@ -14,6 +15,11 @@ const START_ANGLE := 26.0
 const FLASH_DURATION := 0.24
 const COMPUTER_WAIT_TICKS := 12
 const START_CAMERA_FOV := 23.0
+# Normalized viewport bounds leave room for the weapon, control and status panels.
+const ACTION_FRAME := Rect2(0.20, 0.27, 0.60, 0.46)
+const UNIT_FRAME := Rect2(0.43, 0.42, 0.14, 0.16)
+const CAMERA_BLEND_RATE := 9.0
+const CAMERA_MAX_SPEED := 52.0
 
 @onready var terrain_mesh: TerrainMesh = $TerrainMesh
 @onready var camera: Camera3D = $Camera3D
@@ -38,6 +44,9 @@ var battlefield := Battlefield.new()
 var _home_camera := Transform3D.IDENTITY
 var _pan_button := MOUSE_BUTTON_NONE
 var _pan_anchor := Vector2.ZERO
+var _camera_focus := CameraFocus.MANUAL
+var _shot_result := Vector2.INF
+var _hit_unit: MatchUnit
 var simulation := MatchSimulation.new()
 var computer_enabled := false
 var skirmish_map := 0
@@ -99,6 +108,7 @@ func _ready() -> void:
 
 func reset_match(against_computer: bool = false, mission: CampaignMission = null) -> void:
 	cancel_camera_pan()
+	_leave_shot_camera()
 	computer_enabled = against_computer
 	simulation.reset(mission, skirmish_map)
 	_computer.error_scale = mission.cpu_error_scale if mission != null else 1.0
@@ -210,8 +220,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		simulation.pass_turn()
 		cancel_input()
 	elif event.is_action_pressed("pointer_fire") and event is InputEventMouseButton:
+		_leave_shot_camera()
 		_aim_controls.begin_drag(event.position)
 	elif event.is_action_pressed("fire"):
+		_leave_shot_camera()
 		_aim_controls.begin_keyboard()
 
 
@@ -237,6 +249,7 @@ func _handle_camera_input(event: InputEvent) -> bool:
 		camera.fov = START_CAMERA_FOV
 	else:
 		return false
+	_leave_shot_camera()
 	get_viewport().set_input_as_handled()
 	return true
 
@@ -246,11 +259,88 @@ func _pan_camera(from: Vector2, to: Vector2) -> void:
 	var end := AimControls._point_on_plane(camera, to)
 	if start == Vector2.INF or end == Vector2.INF:
 		return
-	# Bound the view's centre to the playable map, rather than letting it get lost.
+	_shift_camera(start - end)
+
+
+func _shift_camera(motion: Vector2) -> bool:
 	var center := AimControls._point_on_plane(camera, get_viewport().get_visible_rect().size * 0.5)
-	var map_size := Vector2(TerrainGrid.SIZE) * TerrainGrid.CELL_SIZE
-	var bounded := (center + start - end).clamp(Vector2.ZERO, map_size)
-	camera.position += Vector3(bounded.x - center.x, bounded.y - center.y, 0.0)
+	if center == Vector2.INF:
+		return false
+	var shift := (center + motion).clamp(Vector2.ZERO, TerrainGrid.WORLD_SIZE) - center
+	camera.position += _in_world(shift)
+	return shift.length_squared() > 0.000001
+
+
+func _leave_shot_camera() -> void:
+	_camera_focus = CameraFocus.MANUAL
+	_shot_result = Vector2.INF
+	_hit_unit = null
+
+
+func _start_shot_camera() -> void:
+	# CPU can fire while a player is already dragging the map.
+	if _pan_button != MOUSE_BUTTON_NONE:
+		return
+	_camera_focus = CameraFocus.ACTION
+	_shot_result = Vector2.INF
+	_hit_unit = null
+	if simulation.pellet_traces.is_empty():
+		return
+	# Shotgun traces are alternating start and end points. Frame the centre
+	# of the real spread rather than inventing an object in flight.
+	var impact_center := Vector2.ZERO
+	var pellet_count := 0
+	for i in range(1, simulation.pellet_traces.size(), 2):
+		impact_center += simulation.pellet_traces[i]
+		pellet_count += 1
+	if pellet_count > 0:
+		_shot_result = impact_center / pellet_count
+
+
+func _update_shot_camera(delta: float, turn_changed: bool) -> void:
+	if _camera_focus == CameraFocus.MANUAL:
+		return
+	if turn_changed:
+		_camera_focus = CameraFocus.NEXT_UNIT
+	if _camera_focus == CameraFocus.NEXT_UNIT:
+		if not _frame_camera(simulation.active_unit().center(), UNIT_FRAME, delta):
+			_leave_shot_camera()
+		return
+
+	var shot := simulation.shot
+	if shot != null:
+		var lead := (shot.velocity * 0.10).limit_length(1.8)
+		_frame_camera(shot.position + lead, ACTION_FRAME, delta)
+		return
+	if simulation.last_blast != Vector2.INF:
+		_shot_result = simulation.last_blast
+		# Give the hardest-hit survivor some room during knockback, while
+		# keeping the actual blast area as the main point of interest.
+		var largest_loss := 0
+		for i in range(mini(_previous_health.size(), simulation.units.size())):
+			var unit := simulation.units[i]
+			var loss := _previous_health[i] - unit.health
+			if unit.alive() and loss > largest_loss:
+				largest_loss = loss
+				_hit_unit = unit
+	if _shot_result != Vector2.INF:
+		var target := _shot_result
+		if _hit_unit != null and _hit_unit.alive():
+			target += (_hit_unit.center() - target).limit_length(3.0) * 0.6
+		_frame_camera(target, ACTION_FRAME, delta)
+
+
+func _frame_camera(point: Vector2, frame: Rect2, delta: float) -> bool:
+	var window := get_viewport().get_visible_rect().size
+	var screen := camera.unproject_position(_in_world(point))
+	var edge := screen.clamp(frame.position * window, frame.end * window)
+	if screen.distance_squared_to(edge) < 1.0:
+		return false
+	var anchor := AimControls._point_on_plane(camera, edge)
+	if anchor == Vector2.INF:
+		return false
+	var correction := (point - anchor) * (1.0 - exp(-CAMERA_BLEND_RATE * delta))
+	return _shift_camera(correction.limit_length(CAMERA_MAX_SPEED * delta))
 
 
 func is_computer_turn() -> bool:
@@ -305,7 +395,8 @@ func _physics_process(delta: float) -> void:
 		_supply_notice_time = 1.6
 		supply_sound.play()
 	_jump_requested = false
-	if simulation.turn_number != previous_turn:
+	var turn_changed := simulation.turn_number != previous_turn
+	if turn_changed:
 		_reset_aim()
 	elif simulation.phase != MatchSimulation.Phase.ACTIVE:
 		cancel_input()
@@ -317,6 +408,7 @@ func _physics_process(delta: float) -> void:
 	flash.visible = _flash_time > 0.0
 	if flash.visible:
 		flash.scale = Vector3.ONE * lerpf(2.45, 0.62, _flash_time / FLASH_DURATION)
+	_update_shot_camera(delta, turn_changed)
 	_refresh_view(delta)
 	if previous_phase != MatchSimulation.Phase.FINISHED and simulation.phase == MatchSimulation.Phase.FINISHED:
 		for i in range(simulation.units.size()):
@@ -337,6 +429,7 @@ func _reset_aim() -> void:
 
 func _fire_current_shot() -> void:
 	if simulation.fire(_angle, _power, _weapon):
+		_start_shot_camera()
 		var shooter := simulation.active_unit()
 		_unit_views[simulation.turn_index].fire_animation(shooter.facing, _angle, _weapon)
 		launch_sound.play()

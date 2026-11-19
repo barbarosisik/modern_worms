@@ -107,13 +107,121 @@ func _run() -> void:
 	_motion(end)
 	_expect(camera.transform == opening and arena._weapon == ArtilleryShot.Weapon.GRENADE,
 		"Shift-clicking a weapon button selects it without starting a camera drag.")
+	await _check_shot_follow(app)
 	app.free()
 	for failure in _failures:
 		push_error(failure)
 	if _failures.is_empty():
-		print("PASS: camera drag, alternate controls, bounds, aiming/GUI isolation, CPU/resolving view controls and cancellation")
+		print("PASS: camera pan, aiming lock, rocket and grenade follow, impact, turn framing, shotgun and manual takeover")
 	quit(0 if _failures.is_empty() else 1)
 
+
+func _check_shot_follow(app: Node) -> void:
+	app._start_match()
+	var arena: MatchArena = app.arena
+	var game := arena.simulation
+	var camera := arena.camera
+	var opening := camera.transform
+	_fire(arena, ArtilleryShot.Weapon.ROCKET, 43.0)
+	var moved_in_flight := false
+	var saw_blast := false
+	for tick in range(285):
+		await physics_frame
+		if game.shot != null and game.shot.position.x > 29.0:
+			moved_in_flight = moved_in_flight or camera.position.x > opening.origin.x + 2.0
+			_expect(_in_view(camera, game.shot.position), "A long rocket stays visible during flight.")
+		if game.last_blast != Vector2.INF:
+			saw_blast = true
+			_expect(_in_view(camera, game.last_blast), "The rocket's impact stays in view.")
+		if game.turn_number > 1:
+			break
+	_expect(moved_in_flight and saw_blast and game.turn_number > 1,
+		"The camera travels across the arena for a long rocket and reaches resolution.")
+	for tick in range(70):
+		await physics_frame
+	var next_screen := camera.unproject_position(Vector3(game.active_unit().feet.x, game.active_unit().center().y, 0.0))
+	_expect(Rect2(525, 284, 230, 148).has_point(next_screen),
+		"The view eases toward the new unit after the shot settles.")
+	_expect(camera.basis == opening.basis and camera.fov == MatchArena.START_CAMERA_FOV,
+		"Following a shot keeps the same camera angle and zoom.")
+
+	app._start_match()
+	_fire(arena, ArtilleryShot.Weapon.GRENADE, 43.0)
+	var bounced := false
+	var falling := false
+	var saw_fuse := false
+	for tick in range(155):
+		await physics_frame
+		if game.shot != null:
+			falling = falling or game.shot.velocity.y < -0.1
+			if falling and game.shot.velocity.y >= 0.0:
+				bounced = true
+				_expect(_in_view(camera, game.shot.position), "The grenade remains visible after bouncing.")
+		if game.last_blast != Vector2.INF:
+			saw_fuse = true
+			_expect(_in_view(camera, game.last_blast), "The grenade fuse ends in view.")
+			break
+	_expect(bounced and saw_fuse, "The grenade test includes a real bounce and a timed impact.")
+
+	app._start_match()
+	_fire(arena, ArtilleryShot.Weapon.ROCKET, 43.0)
+	for tick in range(30):
+		await physics_frame
+	app._pause_game()
+	var paused := camera.transform
+	var projectile_before := game.shot.position
+	for tick in range(8):
+		await physics_frame
+	_expect(camera.transform == paused and game.shot.position == projectile_before,
+		"Pausing freezes both the projectile and its camera.")
+	app._resume_game()
+	_button(MOUSE_BUTTON_MIDDLE, Vector2(850, 300), true)
+	_motion(Vector2(450, 460))
+	_button(MOUSE_BUTTON_MIDDLE, Vector2(450, 460), false)
+	var manual := camera.transform
+	for tick in range(320):
+		await physics_frame
+		if game.turn_number > 1:
+			break
+	_expect(game.turn_number > 1 and camera.transform == manual,
+		"A pan takes over through the rest of the shot and its handoff.")
+	_home()
+	_button(MOUSE_BUTTON_MIDDLE, Vector2(180, 300), true)
+	_motion(Vector2(1080, 300))
+	_button(MOUSE_BUTTON_MIDDLE, Vector2(1080, 300), false)
+	_button(MOUSE_BUTTON_WHEEL_DOWN, Vector2(900, 300), true)
+	var far_view := camera.position
+	var zoom := camera.fov
+	_fire(arena, ArtilleryShot.Weapon.SHOTGUN, 0.0)
+	for tick in range(12):
+		await physics_frame
+	_expect(game.shot == null and game.pellet_traces.size() == 10
+		and camera.position.x > far_view.x + 0.5,
+		"A new shotgun action reclaims the view using its pellet spread.")
+	_expect(camera.fov == zoom, "Shot framing does not change the player's chosen zoom.")
+	_home()
+	var home := camera.transform
+	for tick in range(65):
+		await physics_frame
+	_expect(camera.transform == home, "Home cancels follow instead of fighting the reset.")
+
+	app._start_match()
+	_fire(arena, ArtilleryShot.Weapon.SHOTGUN, 0.0)
+	for tick in range(12):
+		await physics_frame
+	_expect(camera.transform == opening, "A nearby shot stays steady while its impact is already visible.")
+
+
+func _fire(arena: MatchArena, weapon: ArtilleryShot.Weapon, angle: float) -> void:
+	arena._weapon = weapon
+	arena._angle = angle
+	arena._power = 1.0
+	arena._fire_current_shot()
+
+
+func _in_view(camera: Camera3D, point: Vector2) -> bool:
+	var screen := camera.unproject_position(Vector3(point.x, point.y, 0.0))
+	return Rect2(14, 65, 1252, 523).has_point(screen)
 
 func _button(button: MouseButton, point: Vector2, pressed: bool, shift: bool = false) -> void:
 	var event := InputEventMouseButton.new()

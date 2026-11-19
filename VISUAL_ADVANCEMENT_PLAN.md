@@ -163,6 +163,17 @@ suites passed. A 720p Forward+ check covered the opening, a zoomed crater view a
 of the other four maps. Brief same-machine measurements are in PROJECT_LOG.md. Owner play review
 and broader balance testing remain open.
 
+## Combat camera follow-up
+
+Delivered on feature/follow-combat-action. The match camera follows moving rockets and
+bouncing grenades as they approach the edge of the usable view. It frames the blast
+and nearby knockback, or the actual shotgun spread, and eases toward the next unit once
+play hands over. Short shots can stay in the same frame. Pan, wheel and Home override
+the follow for that shot. Holding aim or pausing keeps the view fixed.
+
+The camera reads live shot and turn events. No additional delay gates the simulation.
+Reference observations and checks are in REFERENCE_DESIGN_RESEARCH.md and PROJECT_LOG.md.
+
 ## D. Feedback, sound and UI completion
 Suggested branch: feature/combat-presentation-pass. Depends on B/C stable presentation.
 1. Build a compact weapon feedback specification for rocket, grenade and shotgun: icon, held silhouette, muzzle/launch,

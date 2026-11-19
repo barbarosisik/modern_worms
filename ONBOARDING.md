@@ -2,7 +2,7 @@
 
 Updated 19 November 2026. Start here together with AGENTS.md.
 This is the canonical maintained handoff. Read recent PROJECT_LOG.md entries for subsequent changes.
-Current delivery: package C on feature/battlefield-surface-polish. See the latest project log for validation.
+Current delivery: combat camera on feature/follow-combat-action, following package C. See the latest project log for validation.
 Verify the actual remote head and working tree; do not assume old conversation hashes are current.
 
 ## 1. Product and accepted direction
@@ -174,6 +174,12 @@ canoe beneath a shore pennant. Larger ground props are anchored to multiple terr
 hide when a blast removes a sampled support. The terrain mesh still derives from the same
 occupancy. See PROJECT_LOG.md for the measured performance and remaining visual limits.
 
+Match camera: the camera stays locked during an aim drag. When a weapon fires, it
+keeps the actual projectile in view as needed, holds the blast or shotgun spread, then
+eases toward the next unit. Manual pan, wheel or Home takes over for that action. Auto
+follow preserves the selected zoom, and pause freezes it. Try a full-power diagonal rocket
+over the first ridge in River Outposts for a quick check.
+
 - Take any new owner feedback as a narrow follow-up. Use River Outposts to judge the changed
   battlefields at normal zoom and to check a visible crater.
 - Next package D: combat cues, licensed audio, working volume/mute, and short introductory controls.
@@ -230,7 +236,9 @@ Miska and Nova are upright cartoon cats; Scout is the rescued dog.
 Keep installed local Plumberry models ignored and never publish them.
 Preserve names, appearance choices, saves, imperfect CPU, drag-to-fire and camera controls.
 
-Packages A, B and C are playable checkpoints. Take new feedback as a scoped follow-up.
+Packages A, B and C and the combat camera are playable checkpoints.
+Keep projectile follow, impact and next-unit framing, manual takeover, and the aim lock.
+Take new feedback as a scoped follow-up.
 Inspect shelter stages with tools/preview_shelter.gd using isolated progress. To see the map
 changes, start River Outposts from the skirmish selector. Next is D: give shots, turns,
 hits and pickups readable visuals and working audio. Keep guides, collision and destruction
