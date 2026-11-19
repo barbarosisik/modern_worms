@@ -1,6 +1,6 @@
 # Visual advancement handoff: Miska and Nova
-Updated 16 November 2026. Implementation handoff for the next agent.
-Status: lead rename/model change and shelter package A implemented as tested checkpoints. A awaits owner visual feedback. B-D are PLANNED.
+Updated 19 November 2026. Implementation handoff for the next agent.
+Packages A and B are tested playable checkpoints. Package C is next, followed by D and separate gameplay deliveries.
 This is the current visual priority order. Historical plans remain context, not permission to expand scope.
 
 ## Product and preserved decisions
@@ -34,9 +34,9 @@ Implemented: licensed furniture shelter, animated home previews, shared UI theme
 three weapons, five larger asymmetric maps, contoured destructible terrain, camera navigation,
 two-mission rescue/shelter/upgrade loop and automatic small steps.
 Renamed leads and cat model selection apply to story, menus, shelter and battle, including fallback assets.
-Existing basic idle/walk/jump/recoil/hurt support is not a finished animation system.
-The shelter currently arranges furniture along a room, with labels and radius-based interaction.
-It still needs intentional composition, recognizable functional stations and more life.
+The shelter has three furnished stations and save-aware crew and progress displays.
+The cat leads have distinct outfits and poses, and the upright actors grip equipped weapons at paw sockets.
+New owner feedback on these checkpoints can be handled in a focused follow-up.
 Basic generated audio exists; this is not a completed licensed audio pass.
 No claim that visual polish, balance or the full MVP is finished.
 
@@ -45,8 +45,7 @@ A: shelter composition and interaction (first playable delivery).
 B: cat identity and animation consistency.
 C: terrain surfaces and landmarks across existing maps.
 D: combat feedback, sound and final UI cohesion.
-Deliver A for owner playtesting before applying its visual assumptions everywhere.
-B-D are subsequent individually testable deliveries, not one giant rewrite.
+Continue with C and D as separate playable deliveries.
 Mines and support abilities follow visual/readability acceptance; they are separate gameplay work.
 Do not add chapters, online play, ML opponents or new species during these packages.
 
@@ -122,21 +121,26 @@ Acceptance: fresh run, rescued state and completed state render correctly after 
 - Provide owner an actual tested launch command; do not claim a game window opened without verifying it.
 - Stop for owner visual feedback after A; do not silently implement B-D in the same delivery.
 
-## B. Distinct, expressive cat leads
-Suggested branch: feature/cat-character-polish. Depends on A feedback.
-1. Keep Miska and Nova cats in every preview and battlefield. Preserve outfit selection.
-2. Give each a recognizable default palette plus a non-color identifier (small licensed accessory or distinct portrait/name treatment).
-   Do not make identity depend only on red/green tints; do not add realistic anatomy.
-3. Use consistent model scale, material palette and face lighting across home, wardrobe, battle and shelter.
-4. Audit available rig clips first. Define idle, walk, airborne, aim, fire, hurt and win priorities;
-   never assume a clip exists. Use gentle pose fallback where missing.
-5. Avoid looping one-shot hurt/celebration forever. Test interrupted states and return to idle/walk.
-6. Align each weapon to the paw/held pose in both directions, with credible recoil and no muzzle inside the head.
-7. Keep animation separate from simulation and damage timing; never move collision bodies for cosmetic bounce.
-8. Keep selected character and active turn readable at the furthest supported zoom, with name/marker shape.
-9. Check local cartoon path and CC0 fallback path. Clearly state the fallback still has older silhouettes.
-Acceptance: both cats identifiable without reading a long label; no clipping or frozen poses in a complete turn cycle.
-Validation: aim, match, campaign and interface suites, plus rendered captures of both cats in every presentation context.
+## B. Distinct cat leads and weapon poses
+
+Delivered on feature/cat-character-polish. Miska retains the warm coat. Nova has a cooler
+base coat and an original bow that follows the head. The existing wardrobe tints apply over
+each lead's base appearance. The home and wardrobe use similar lighting, with a small shared
+fill on the upright faces. Battle labels identify the leads and retain the active turn arrow.
+
+- Upright rigs: loop idle/walk. Play jump, pain and celebration once. Arm posing handles aim
+  and fire. Hurt interrupts a held pose, then the character returns to the current locomotion.
+- Rocket, grenade and shotgun follow the paw nearer the camera. The long guns face up the aim
+  line on either side. Recoil retains the weapon and direction at release.
+- The older CC0 rigs use idle/walk, small procedural reactions and an approximate weapon mount.
+- Victory plays while the result panel owns the pause. All motion is cosmetic.
+
+Validation: character presentation, aim, match, campaign, interface, shelter, camera, solo and
+shotgun suites passed. The headless presentation suite checks both facings, aim limits,
+muzzle clearance, reactions and recovery. A fresh public asset fixture passed presentation
+and match checks. A short scripted 720p Forward+ run opened the wardrobe and a skirmish, selected
+the shotgun, jumped and fired by dragging. The wardrobe and aiming views were inspected.
+Owner art review remains open.
 
 ## C. Battlefield surface and landmark pass
 Suggested branch: feature/battlefield-surface-polish. Depends on established palette.
@@ -187,7 +191,7 @@ Define those mechanics and tests before coding. Do not turn a visual branch into
 - Re-read latest owner feedback before applying old plans.
 - Descriptive feature branch from current development_branch; no edits/pushes to main.
 - Existing behavior preserved, relevant checks pass, visuals actually inspected.
-- Tests and screenshots use isolated saves; user's progression remains untouched.
+- Use isolated saves and a brief in-game check of the changed behavior. Capture only what helps.
 - Record implemented versus pending separately, include honest visual/performance limitations.
 - Public repository contains only redistributable assets. Local restricted model setup documented.
 - Owner commit identity, no assistant credit; PR into development_branch and integrated verification.
@@ -195,7 +199,7 @@ Define those mechanics and tests before coding. Do not turn a visual branch into
 
 ## Copyable next-agent instruction
 Use the maintained prompt in [ONBOARDING.md](ONBOARDING.md#11-copyable-next-agent-prompt).
-Read AGENTS.md and the latest PROJECT_LOG first. A is implemented; apply newest owner shelter feedback
-before B. If asked to continue, implement B on a descriptive branch from development_branch, preserve
-the accepted UI/saves/inputs/two-mission scope, validate and integrate there. Main stays manual.
+Read AGENTS.md and the latest PROJECT_LOG first. A and B are implemented. Take the newest owner
+feedback, then continue with C from development_branch. Start with River Outposts and compare the
+visible ground to collision, including a crater. Main promotion remains manual.
 Maintain ONBOARDING.md, this plan and the log at every handoff and provide the prompt in chat.

@@ -41,7 +41,7 @@ var _pan_anchor := Vector2.ZERO
 var simulation := MatchSimulation.new()
 var computer_enabled := false
 var skirmish_map := 0
-var _unit_views: Array[Node3D] = []
+var _unit_views: Array[CampaignActor] = []
 var _unit_labels: Array[Label3D] = []
 var _rescue_view: CampaignActor
 var _angle := START_ANGLE
@@ -317,6 +317,10 @@ func _physics_process(delta: float) -> void:
 		flash.scale = Vector3.ONE * lerpf(2.45, 0.62, _flash_time / FLASH_DURATION)
 	_refresh_view(delta)
 	if previous_phase != MatchSimulation.Phase.FINISHED and simulation.phase == MatchSimulation.Phase.FINISHED:
+		for i in range(simulation.units.size()):
+			var unit := simulation.units[i]
+			if unit.alive() and unit.team == simulation.winner:
+				_unit_views[i].celebrate()
 		match_finished.emit(simulation.winner)
 
 
@@ -331,7 +335,8 @@ func _reset_aim() -> void:
 
 func _fire_current_shot() -> void:
 	if simulation.fire(_angle, _power, _weapon):
-		(_unit_views[simulation.turn_index] as CampaignActor).fire_animation()
+		var shooter := simulation.active_unit()
+		_unit_views[simulation.turn_index].fire_animation(shooter.facing, _angle, _weapon)
 		launch_sound.play()
 		if _weapon == ArtilleryShot.Weapon.SHOTGUN:
 			var lines := ImmediateMesh.new()
@@ -419,13 +424,19 @@ func _rebuild_unit_views() -> void:
 	_unit_labels.clear()
 	for unit in simulation.units:
 		var team_color := BLUE if unit.team == 0 else ORANGE
-		var identity := unit.display_name if not unit.display_name.is_empty() else (("Miska" if unit.number == 1 else "Nova") if unit.team == 0 else "Raider")
-		var body := CampaignActor.new(identity, unit.outfit)
+		var identity := _crew_name(unit) if unit.team == 0 else unit.display_name
+		var body := CampaignActor.new(identity if not identity.is_empty() else "Raider", unit.outfit)
 		add_child(body)
 		_unit_views.append(body)
 		var label := _create_label(team_color.lightened(0.24))
 		add_child(label)
 		_unit_labels.append(label)
+
+
+func _crew_name(unit: MatchUnit) -> String:
+	if not unit.display_name.is_empty():
+		return unit.display_name
+	return "Miska" if unit.number == 1 else "Nova"
 
 
 func _create_capsule(team_color: Color) -> Node3D:
@@ -454,31 +465,31 @@ func _create_label(tint: Color) -> Label3D:
 func _refresh_view(delta: float = 0.0) -> void:
 	var active := simulation.active_unit()
 	var can_aim := simulation.phase == MatchSimulation.Phase.ACTIVE and active.alive()
+	var aiming := _aim_controls.is_aiming() or (is_computer_turn() and _computer_phase == ComputerPhase.AIMING)
+	var label_scale := clampf(camera.fov / START_CAMERA_FOV, 1.0, 1.30)
 	for i in range(simulation.units.size()):
 		var unit := simulation.units[i]
+		var body := _unit_views[i]
 		if i < _previous_health.size() and unit.health < _previous_health[i]:
-			(_unit_views[i] as CampaignActor).hurt_animation()
+			body.hurt_animation()
 			var damage := _create_label(Color("#ffcf75"))
 			damage.text = "-%d" % (_previous_health[i]-unit.health)
 			damage.position = _in_world(unit.feet) + Vector3(0,1.7,0.8)
 			add_child(damage)
 			_damage_labels.append(damage)
 			_previous_health[i] = unit.health
-		var body := _unit_views[i]
 		var label := _unit_labels[i]
 		body.visible = unit.alive()
 		label.visible = unit.alive()
 		if body.visible:
-			if body is CampaignActor:
-				body.position = _in_world(unit.feet)
-				body.pose(unit.facing, unit.velocity.x, delta, unit.grounded)
-				body.aim(unit.facing, _angle, _weapon, can_aim and unit == active)
-			else:
-				body.position = _in_world(unit.center())
+			body.position = _in_world(unit.feet)
+			body.equip(_angle, _weapon, can_aim and unit == active, aiming)
+			body.pose(unit.facing, unit.velocity.x, delta, unit.grounded)
 			label.position = Vector3(unit.feet.x, unit.feet.y + 1.24, 0.58)
-			var call_sign := unit.display_name
+			label.scale = Vector3.ONE * label_scale
+			var call_sign := _crew_name(unit) if unit.team == 0 else unit.display_name
 			if call_sign.is_empty():
-				call_sign = "%s%d" % ["B" if unit.team == 0 else "O", unit.number]
+				call_sign = "O%d" % unit.number
 			label.text = "%s  ·  %d" % [call_sign, unit.health]
 			if can_aim and unit == active:
 				label.text = "▼\n" + label.text
@@ -487,6 +498,7 @@ func _refresh_view(delta: float = 0.0) -> void:
 	_rescue_view.visible = target != null and target.alive() and not simulation.rescued
 	if _rescue_view.visible:
 		_rescue_view.position = _in_world(target.feet)
+		_rescue_view.pose(target.facing, 0.0, delta, target.grounded)
 	if can_aim and active.team == 0:
 		var preview := simulation.build_shot(_angle, _power, _weapon, active.facing)
 		trajectory_guide.preview(preview, simulation.terrain, simulation.living_centers(), active.guide_tier)

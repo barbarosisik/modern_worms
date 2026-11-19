@@ -247,3 +247,29 @@ after revealing the shelter before clicking; all station modals including locked
 Final room states inspected in Forward+ at both 1280x720 and 1920x1080; station panel captures inspected at
 1080p. Visual inspection and automated input checks do not constitute a full manual playthrough.
 Next handoff: owner shelter feedback first, then package B when asked to advance. Keep two missions.
+
+## 2026-11-19 | Package B character identity and weapon poses
+
+Worked on feature/cat-character-polish from development 0640170. Miska retains the warm
+coat. Nova has a cooler base coat and an original bow attached to the head. The existing
+outfits still apply. Matched home and wardrobe lighting, added subtle face fill to upright
+models, and made the skirmish name labels easier to read on zoom out.
+
+Audited the installed GLBs and the public CC0 rigs. Upright idle/walk now loop, while jump,
+hurt and victory play once. The three held props follow the near paw. The released weapon and
+direction persist through recoil. Winning actors finish their pose behind the result panel
+while gameplay is paused. The CC0 rigs use idle/walk plus procedural fallback poses and an
+approximate mount. The work lives in presentation. Existing combat and save rules are the
+same. The local Plumberry sources remain ignored.
+
+Godot 4.7.2 passed character_presentation, interface, aim, match, campaign, shelter, camera,
+solo and shotgun checks with no errors. A clean public asset fixture passed character
+presentation and match. Inspected the live Forward+ title preview. A brief isolated
+1280×720 scripted run clicked New Story and Back, started a skirmish, selected shotgun,
+jumped and drag-fired. Inspected its wardrobe and aiming views. Owner visual review and
+a broader playthrough remain open.
+
+Delivery target is development_branch through the package B PR. Next, handle any scoped
+owner feedback, then start C with River Outposts surfaces, landmarks and scenery depth.
+Compare visible footing and craters against collision before applying the art to other maps.
+D and the separate mine/crew ability work follow. Campaign expansion remains deferred.

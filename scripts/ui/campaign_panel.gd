@@ -37,6 +37,14 @@ func _ready() -> void:
 		_models.append(model)
 
 
+func _process(delta: float) -> void:
+	if not _preview.is_visible_in_tree():
+		return
+	for i in range(_models.size()):
+		if _models[i].visible:
+			_models[i].pose(1.0 if i == 0 else -1.0, 0.0, delta)
+
+
 func open_wardrobe(run: CampaignRun) -> void:
 	_prepare("SIGNAL FIRES  /  NEW STORY", "Meet the rescuers")
 	_body.text = "Miska and Nova return to their flooded valley together. Miska and Nova are two cats. Choose their coat styles before the first mission. A new story starts with fresh progress and skills."
@@ -194,6 +202,7 @@ func _refresh_roster() -> void:
 	for i in range(_models.size()):
 		_models[i].visible = i == _roster_index
 		_models[i].position.x = 0.0
+	_models[_roster_index].set_outfit(_run.outfits[_roster_index] if _roster_index < _run.outfits.size() else 0)
 	var tier := _run.guide_tiers[_roster_index]
 	var dots := TrajectoryGuide.DOT_COUNTS
 	_body.text = "%s can currently see up to %d dots when aiming." % [CampaignRun.ROSTER[_roster_index], dots[tier]]
