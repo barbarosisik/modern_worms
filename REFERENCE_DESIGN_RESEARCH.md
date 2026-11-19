@@ -67,3 +67,17 @@ No reference artwork has been copied into game assets. Scratch reference images 
 ## Acceptance and branch workflow
 
 Run relevant simulation, aiming, terrain and campaign checks. Inspect real Forward+ renders and record what was actually played. Automated checks cannot establish that the game is fun. Publish on feature/stylized-first-playable, integrate tested work through development_branch, and keep main behind owner approval. Do not report the full MVP, final art or ten-level story complete while these sections remain unfinished.
+
+## 19 November | Camera behavior in the reference games
+
+- [Worms W.M.D. campaign footage, IGN](https://www.youtube.com/watch?v=xA4oBUqGeok&t=5s).
+  The opening grenade exchange around 0:00–0:12 shifts the view toward the explosion
+  and down toward the affected worms.
+- [Worms W.M.D Mobilize, Team17](https://www.team17.com/news/worms-w-md-mobilize-out-now-on-apple-android).
+  The developer describes tracking action and worms while allowing manual movement and zoom.
+- [Original Wild Ones match, FATEUG](https://www.youtube.com/watch?v=MVwnV6zIV3A&t=299s).
+  Around 5:01–5:04 the on-screen hit resolves within a wide, steady view. This supports
+  giving nearby actions room before moving the camera. The clip does not establish an
+  off-screen follow rule for Wild Ones.
+
+Signal Fires uses its own bounded easing for in-flight shots, impact and the next unit.

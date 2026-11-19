@@ -302,3 +302,26 @@ establish sustained match performance.
 Next, review the River Outposts opening and other existing maps with the owner. Package D is
 the next separate delivery for distinct combat cues and working audio. The planned mine and
 crew support abilities are later gameplay deliveries. Main releases remain manual.
+
+## 2026-11-19 | Follow the shot with the combat camera
+
+Owner requested a camera that follows the action after firing. Added the presentation
+change on feature/follow-combat-action from development d643457. Reviewed the opening
+grenade exchange in IGN's Worms W.M.D. footage and a wide hit in original Wild Ones footage.
+Team17's Mobilize notes also describe action tracking and manual takeover. See
+REFERENCE_DESIGN_RESEARCH.md for links and observation limits.
+
+The view eases as a rocket or bouncing grenade approaches the edge of the usable screen,
+keeps the impact and hardest-hit nearby survivor in view as resolution continues, and
+then frames the incoming unit. Shotgun follow uses the real pellet endpoints. A close
+shot can hold a steady composition. Pan, wheel or Home takes over for that action. Aim
+stays fixed while held. The follow uses the player's existing zoom and adds no turn delay.
+
+Godot 4.7.2 passed camera, aim, match, solo, shotgun, campaign and interface checks. The
+camera fixture covers long rocket flight, grenade bounce and fuse, shotgun spread,
+paused flight, manual takeover and reset, and the next-unit view. A short isolated
+1280×720 Forward+ run fired a real mouse-drag rocket and checked visible flight,
+impact and the following unit. Broader camera feel feedback remains open.
+
+Next: try a high rocket over the opening ridge in River Outposts. Package D still covers
+distinct combat cues and working audio, followed separately by the planned gameplay tools.
